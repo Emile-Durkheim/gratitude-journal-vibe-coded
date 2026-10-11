@@ -21,4 +21,4 @@ npm run build   # production build in dist/
 
 Every push to `main` builds and deploys to GitHub Pages via `.github/workflows/deploy.yml`. In the repo's **Settings → Pages**, the source must be **GitHub Actions**.
 
-The app is served from `/journal-vibe/`; if you rename the repo, update `base` in `vite.config.ts`.
+The app is served from `/<repo-name>/`. The workflow passes the repo name as `BASE_PATH`, so renaming the repo needs no code change (locally the default is `/gratitude-journal-vibe-coded/`).

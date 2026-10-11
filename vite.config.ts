@@ -2,7 +2,8 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const base = '/journal-vibe/'
+// CI sets BASE_PATH from the repo name, so renaming the repo can't break the deployed paths.
+const base = process.env.BASE_PATH ?? '/gratitude-journal-vibe-coded/'
 
 export default defineConfig({
   base,
