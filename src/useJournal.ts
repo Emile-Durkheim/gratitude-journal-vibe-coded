@@ -1,93 +1,110 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Prompts } from './prompts'
 import {
-  loadEntries,
-  loadSettings,
+  loadAll,
+  makeEntry,
   mergeEntries,
+  requestPersistence,
   saveEntries,
+  saveEntry,
   saveSettings,
-  withAnswers,
   type Entries,
+  type Entry,
   type ExportFile,
+  type Item,
+  type PersistState,
   type Settings,
 } from './storage'
 
 const SAVE_DELAY_MS = 400
 
 export function useJournal() {
-  const [entries, setEntries] = useState<Entries>(loadEntries)
-  const [settings, setSettingsState] = useState<Settings>(loadSettings)
+  const [loaded, setLoaded] = useState(false)
+  const [entries, setEntries] = useState<Entries>({})
+  const [settings, setSettingsState] = useState<Settings | null>(null)
   const [saveError, setSaveError] = useState(false)
-  const pending = useRef<Entries | null>(null)
+  const [persist, setPersist] = useState<PersistState | null>(null)
+  // Days edited but not yet written, flushed after a short pause or when the page is hidden.
+  const pending = useRef(new Map<string, Entry | undefined>())
   const timer = useRef<number | undefined>(undefined)
+
+  useEffect(() => {
+    loadAll()
+      .then(({ entries, settings }) => {
+        setEntries(entries)
+        setSettingsState(settings)
+      })
+      .catch(() => setSaveError(true))
+      .finally(() => setLoaded(true))
+    requestPersistence().then(setPersist)
+  }, [])
+
+  const report = useCallback((p: Promise<unknown>) => {
+    p.then(() => setSaveError(false)).catch(() => setSaveError(true))
+  }, [])
 
   const flush = useCallback(() => {
     window.clearTimeout(timer.current)
-    if (!pending.current) return
-    try {
-      saveEntries(pending.current)
-      setSaveError(false)
-    } catch {
-      setSaveError(true)
-    }
-    pending.current = null
-  }, [])
+    const batch = [...pending.current]
+    pending.current.clear()
+    for (const [date, entry] of batch) report(saveEntry(date, entry))
+  }, [report])
 
   useEffect(() => {
-    const onHide = () => flush()
     const onVisibility = () => document.visibilityState === 'hidden' && flush()
-    window.addEventListener('pagehide', onHide)
+    window.addEventListener('pagehide', flush)
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
-      window.removeEventListener('pagehide', onHide)
+      window.removeEventListener('pagehide', flush)
       document.removeEventListener('visibilitychange', onVisibility)
       flush()
     }
   }, [flush])
 
-  useEffect(() => {
-    navigator.storage?.persist?.().catch(() => {})
-  }, [])
-
-  const schedule = useCallback(
-    (next: Entries) => {
-      pending.current = next
+  const setItems = useCallback(
+    (date: string, items: Item[]) => {
+      const entry = makeEntry(date, items)
+      setEntries((prev) => {
+        const next = { ...prev }
+        if (entry) next[date] = entry
+        else delete next[date]
+        return next
+      })
+      pending.current.set(date, entry)
       window.clearTimeout(timer.current)
       timer.current = window.setTimeout(flush, SAVE_DELAY_MS)
     },
     [flush],
   )
 
-  const setAnswers = useCallback(
-    (date: string, prompts: Prompts, answers: Prompts) => {
-      setEntries((prev) => {
-        const next = withAnswers(prev, date, prompts, answers)
-        schedule(next)
+  const updateSettings = useCallback(
+    (patch: Partial<Settings>) => {
+      setSettingsState((prev) => {
+        if (!prev) return prev
+        const next = { ...prev, ...patch }
+        report(saveSettings(next))
         return next
       })
     },
-    [schedule],
+    [report],
   )
-
-  const setPrompts = useCallback((prompts: Prompts) => {
-    const next = { prompts }
-    setSettingsState(next)
-    saveSettings(next)
-  }, [])
 
   const importFile = useCallback(
     (file: ExportFile) => {
       flush()
       setEntries((prev) => {
         const next = mergeEntries(prev, file.entries)
-        saveEntries(next)
+        report(saveEntries(next))
         return next
       })
       setSettingsState(file.settings)
-      saveSettings(file.settings)
+      report(saveSettings(file.settings))
     },
-    [flush],
+    [flush, report],
   )
 
-  return { entries, settings, saveError, setAnswers, setPrompts, importFile, flush }
+  const retryPersist = useCallback(() => {
+    requestPersistence().then(setPersist)
+  }, [])
+
+  return { loaded, entries, settings, saveError, persist, setItems, updateSettings, importFile, flush, retryPersist }
 }

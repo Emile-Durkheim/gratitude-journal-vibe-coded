@@ -1,39 +1,40 @@
+import { createStore, del, entries as idbEntries, set, setMany } from 'idb-keyval'
 import { isValidKey } from './dates'
-import { DEFAULT_PROMPTS, type Prompts } from './prompts'
+import { DEFAULT_PROMPTS } from './prompts'
+
+export type Item = { prompt: string; answer: string }
 
 export type Entry = {
   date: string
-  prompts: Prompts
-  answers: Prompts
+  /** Prompts are stored with the answers, so editing the prompt list never relabels old days. */
+  items: Item[]
   updatedAt: number
 }
 
 export type Entries = Record<string, Entry>
 
 export type Settings = {
-  prompts: Prompts
+  /** Active prompts, in order. At least one. */
+  prompts: string[]
+  /** Prompts the user wrote themselves (shown in the library). */
+  customPrompts: string[]
+  lastExportAt: number | null
 }
 
 export type ExportFile = {
-  version: 1
+  version: 2
   settings: Settings
   entries: Entries
 }
 
-const ENTRIES_KEY = 'gj:v1:entries'
-const SETTINGS_KEY = 'gj:v1:settings'
+export const DEFAULT_SETTINGS: Settings = { prompts: DEFAULT_PROMPTS, customPrompts: [], lastExportAt: null }
 
-function readJson(key: string): unknown {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
+const store = createStore('gratitude-journal', 'kv')
+const SETTINGS_KEY = 'settings'
+const ENTRY_PREFIX = 'entry:'
 
-function isTriple(x: unknown): x is Prompts {
-  return Array.isArray(x) && x.length === 3 && x.every((s) => typeof s === 'string')
+function isStringArray(x: unknown): x is string[] {
+  return Array.isArray(x) && x.every((s) => typeof s === 'string')
 }
 
 function isEntry(x: unknown): x is Entry {
@@ -42,8 +43,8 @@ function isEntry(x: unknown): x is Entry {
   return (
     typeof e.date === 'string' &&
     isValidKey(e.date) &&
-    isTriple(e.prompts) &&
-    isTriple(e.answers) &&
+    Array.isArray(e.items) &&
+    e.items.every((i) => i && typeof i.prompt === 'string' && typeof i.answer === 'string') &&
     typeof e.updatedAt === 'number'
   )
 }
@@ -58,58 +59,63 @@ export function sanitizeEntries(x: unknown): Entries {
 }
 
 export function sanitizeSettings(x: unknown): Settings {
-  const prompts = (x as Settings | null)?.prompts
-  return { prompts: isTriple(prompts) ? prompts : DEFAULT_PROMPTS }
-}
-
-export function loadEntries(): Entries {
-  return sanitizeEntries(readJson(ENTRIES_KEY))
-}
-
-export function saveEntries(entries: Entries): void {
-  localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries))
-}
-
-export function loadSettings(): Settings {
-  return sanitizeSettings(readJson(SETTINGS_KEY))
-}
-
-export function saveSettings(settings: Settings): void {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
-}
-
-export function hasContent(answers: Prompts): boolean {
-  return answers.some((a) => a.trim() !== '')
-}
-
-/** Returns new entries with this day's answers applied; empty days are removed. */
-export function withAnswers(
-  entries: Entries,
-  date: string,
-  prompts: Prompts,
-  answers: Prompts,
-  now = Date.now(),
-): Entries {
-  const next = { ...entries }
-  if (hasContent(answers)) {
-    next[date] = { date, prompts, answers, updatedAt: now }
-  } else {
-    delete next[date]
+  const s = (x ?? {}) as Partial<Settings>
+  const prompts = isStringArray(s.prompts) ? s.prompts.filter((p) => p.trim()) : []
+  return {
+    prompts: prompts.length ? prompts : DEFAULT_PROMPTS,
+    customPrompts: isStringArray(s.customPrompts) ? s.customPrompts.filter((p) => p.trim()) : [],
+    lastExportAt: typeof s.lastExportAt === 'number' ? s.lastExportAt : null,
   }
-  return next
+}
+
+export async function loadAll(): Promise<{ entries: Entries; settings: Settings }> {
+  const rows = await idbEntries<string, unknown>(store)
+  const raw: Record<string, unknown> = {}
+  let settings: unknown = null
+  for (const [key, value] of rows) {
+    if (key === SETTINGS_KEY) settings = value
+    else if (key.startsWith(ENTRY_PREFIX)) raw[key.slice(ENTRY_PREFIX.length)] = value
+  }
+  return { entries: sanitizeEntries(raw), settings: sanitizeSettings(settings) }
+}
+
+/** Writes one day; an entry with no content deletes the day. */
+export async function saveEntry(date: string, entry: Entry | undefined): Promise<void> {
+  if (entry) await set(ENTRY_PREFIX + date, entry, store)
+  else await del(ENTRY_PREFIX + date, store)
+}
+
+export async function saveEntries(entries: Entries): Promise<void> {
+  await setMany(
+    Object.values(entries).map((e) => [ENTRY_PREFIX + e.date, e]),
+    store,
+  )
+}
+
+export async function saveSettings(settings: Settings): Promise<void> {
+  await set(SETTINGS_KEY, settings, store)
+}
+
+export function hasContent(items: Item[]): boolean {
+  return items.some((i) => i.answer.trim() !== '')
+}
+
+/** The entry to store for this day, or undefined if it's empty. */
+export function makeEntry(date: string, items: Item[], now = Date.now()): Entry | undefined {
+  return hasContent(items) ? { date, items, updatedAt: now } : undefined
 }
 
 export function toExport(entries: Entries, settings: Settings): ExportFile {
-  return { version: 1, settings, entries }
+  return { version: 2, settings, entries }
 }
 
 /** Parse an export file. Throws on anything that isn't one. */
 export function parseExport(text: string): ExportFile {
   const data = JSON.parse(text)
-  if (!data || data.version !== 1 || typeof data.entries !== 'object') {
-    throw new Error('Not a Gratitude Journal export file.')
+  if (!data || data.version !== 2 || typeof data.entries !== 'object') {
+    throw new Error('Not a Gratitude Journal backup file.')
   }
-  return { version: 1, settings: sanitizeSettings(data.settings), entries: sanitizeEntries(data.entries) }
+  return { version: 2, settings: sanitizeSettings(data.settings), entries: sanitizeEntries(data.entries) }
 }
 
 /** Merge by date; the newer updatedAt wins. */
@@ -119,4 +125,17 @@ export function mergeEntries(current: Entries, incoming: Entries): Entries {
     if (!out[key] || entry.updatedAt > out[key].updatedAt) out[key] = entry
   }
   return out
+}
+
+export type PersistState = 'persisted' | 'not-persisted' | 'unsupported'
+
+/** Ask the browser not to evict our data. Returns whether storage is now persistent. */
+export async function requestPersistence(): Promise<PersistState> {
+  if (!navigator.storage?.persist) return 'unsupported'
+  try {
+    if (await navigator.storage.persisted()) return 'persisted'
+    return (await navigator.storage.persist()) ? 'persisted' : 'not-persisted'
+  } catch {
+    return 'not-persisted'
+  }
 }

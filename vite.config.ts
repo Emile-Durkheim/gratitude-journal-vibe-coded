@@ -2,7 +2,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const base = '/gratitude-journal/'
+const base = '/journal-vibe/'
 
 export default defineConfig({
   base,

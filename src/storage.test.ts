@@ -1,41 +1,67 @@
+import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_PROMPTS, type Prompts } from './prompts'
-import { mergeEntries, parseExport, sanitizeSettings, toExport, withAnswers, type Entries } from './storage'
+import { DEFAULT_PROMPTS } from './prompts'
+import {
+  loadAll,
+  makeEntry,
+  mergeEntries,
+  parseExport,
+  sanitizeSettings,
+  saveEntry,
+  saveSettings,
+  toExport,
+  type Entries,
+  type Item,
+} from './storage'
 
-const P: Prompts = ['a', 'b', 'c']
+const items = (...answers: string[]): Item[] => answers.map((answer, i) => ({ prompt: `p${i}`, answer }))
 
-describe('withAnswers', () => {
-  it('stores a day with its prompts', () => {
-    const e = withAnswers({}, '2026-10-11', P, ['x', '', ''], 1)
-    expect(e['2026-10-11']).toEqual({ date: '2026-10-11', prompts: P, answers: ['x', '', ''], updatedAt: 1 })
+describe('makeEntry', () => {
+  it('keeps prompts with answers, for any number of prompts', () => {
+    const e = makeEntry('2026-10-11', items('a', '', 'c', 'd', 'e'), 1)
+    expect(e?.items).toHaveLength(5)
+    expect(e?.items[0]).toEqual({ prompt: 'p0', answer: 'a' })
   })
 
-  it('removes a day when all answers are blank', () => {
-    const e = withAnswers({}, '2026-10-11', P, ['x', '', ''], 1)
-    expect(withAnswers(e, '2026-10-11', P, [' ', '', ''], 2)).toEqual({})
+  it('returns nothing for a blank day', () => {
+    expect(makeEntry('2026-10-11', items(' ', ''), 1)).toBeUndefined()
+  })
+})
+
+describe('IndexedDB storage', () => {
+  it('saves, loads and deletes days and settings', async () => {
+    await saveEntry('2026-10-11', makeEntry('2026-10-11', items('x'), 1))
+    await saveEntry('2026-10-12', makeEntry('2026-10-12', items('y'), 2))
+    await saveSettings({ prompts: ['one', 'two'], customPrompts: ['two'], lastExportAt: 5 })
+    let all = await loadAll()
+    expect(Object.keys(all.entries).sort()).toEqual(['2026-10-11', '2026-10-12'])
+    expect(all.settings).toEqual({ prompts: ['one', 'two'], customPrompts: ['two'], lastExportAt: 5 })
+    await saveEntry('2026-10-12', undefined)
+    all = await loadAll()
+    expect(Object.keys(all.entries)).toEqual(['2026-10-11'])
   })
 })
 
 describe('mergeEntries', () => {
   it('keeps the newer entry per day', () => {
-    const a: Entries = withAnswers({}, '2026-10-01', P, ['old', '', ''], 1)
+    const a: Entries = { '2026-10-01': makeEntry('2026-10-01', items('old'), 1)! }
     const b: Entries = {
-      ...withAnswers({}, '2026-10-01', P, ['new', '', ''], 2),
-      ...withAnswers({}, '2026-10-02', P, ['other', '', ''], 1),
+      '2026-10-01': makeEntry('2026-10-01', items('new'), 2)!,
+      '2026-10-02': makeEntry('2026-10-02', items('other'), 1)!,
     }
-    const m = mergeEntries(a, b)
-    expect(m['2026-10-01'].answers[0]).toBe('new')
-    expect(m['2026-10-02'].answers[0]).toBe('other')
-    expect(mergeEntries(b, a)['2026-10-01'].answers[0]).toBe('new')
+    expect(mergeEntries(a, b)['2026-10-01'].items[0].answer).toBe('new')
+    expect(mergeEntries(b, a)['2026-10-01'].items[0].answer).toBe('new')
+    expect(mergeEntries(a, b)['2026-10-02'].items[0].answer).toBe('other')
   })
 })
 
 describe('export / import', () => {
   it('round-trips', () => {
-    const entries = withAnswers({}, '2026-10-11', P, ['x', 'y', 'z'], 5)
-    const file = parseExport(JSON.stringify(toExport(entries, { prompts: P })))
+    const entries = { '2026-10-11': makeEntry('2026-10-11', items('x', 'y'), 5)! }
+    const settings = { prompts: ['a'], customPrompts: ['a'], lastExportAt: null }
+    const file = parseExport(JSON.stringify(toExport(entries, settings)))
     expect(file.entries).toEqual(entries)
-    expect(file.settings.prompts).toEqual(P)
+    expect(file.settings).toEqual(settings)
   })
 
   it('rejects other files', () => {
@@ -44,15 +70,16 @@ describe('export / import', () => {
   })
 
   it('drops malformed entries', () => {
-    const file = parseExport(JSON.stringify({ version: 1, entries: { '2026-10-11': { date: '2026-10-11' } } }))
+    const file = parseExport(JSON.stringify({ version: 2, entries: { '2026-10-11': { date: '2026-10-11' } } }))
     expect(file.entries).toEqual({})
     expect(file.settings.prompts).toEqual(DEFAULT_PROMPTS)
   })
 })
 
 describe('sanitizeSettings', () => {
-  it('falls back to defaults', () => {
+  it('falls back to defaults and never allows zero prompts', () => {
     expect(sanitizeSettings(null).prompts).toEqual(DEFAULT_PROMPTS)
-    expect(sanitizeSettings({ prompts: ['only one'] }).prompts).toEqual(DEFAULT_PROMPTS)
+    expect(sanitizeSettings({ prompts: [] }).prompts).toEqual(DEFAULT_PROMPTS)
+    expect(sanitizeSettings({ prompts: ['a', 'b', 'c', 'd'] }).prompts).toHaveLength(4)
   })
 })

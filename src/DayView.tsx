@@ -1,28 +1,27 @@
 import { useState } from 'react'
 import { formatLong, fromKey, toKey, todayKey } from './dates'
-import type { Prompts } from './prompts'
-import type { Entry } from './storage'
+import type { Entry, Item } from './storage'
 
 type Props = {
   date: string
   entry: Entry | undefined
-  currentPrompts: Prompts
-  onChange: (date: string, prompts: Prompts, answers: Prompts) => void
+  currentPrompts: string[]
+  onChange: (date: string, items: Item[]) => void
   onBack: () => void
 }
 
 export default function DayView({ date, entry, currentPrompts, onChange, onBack }: Props) {
   const today = todayKey()
   const future = date > today
-  // Prompts are frozen once a day has an entry, so later edits to the prompts never relabel it.
-  const [prompts] = useState<Prompts>(entry?.prompts ?? currentPrompts)
-  const [answers, setAnswers] = useState<Prompts>(entry?.answers ?? ['', '', ''])
+  // A day that already has an entry keeps the prompts it was written with.
+  const [items, setItems] = useState<Item[]>(
+    () => entry?.items ?? currentPrompts.map((prompt) => ({ prompt, answer: '' })),
+  )
 
-  const update = (i: number, value: string) => {
-    const next = [...answers] as Prompts
-    next[i] = value
-    setAnswers(next)
-    onChange(date, prompts, next)
+  const update = (i: number, answer: string) => {
+    const next = items.map((item, j) => (j === i ? { ...item, answer } : item))
+    setItems(next)
+    onChange(date, next)
   }
 
   const neighbour = (delta: number) => {
@@ -48,21 +47,18 @@ export default function DayView({ date, entry, currentPrompts, onChange, onBack 
         <p className="muted center empty">This day hasn't happened yet.</p>
       ) : (
         <form className="prompts" onSubmit={(e) => e.preventDefault()}>
-          {prompts.map((prompt, i) => (
+          {items.map((item, i) => (
             <label key={i} className="prompt">
               <span className="prompt-label">
                 <span className="prompt-num">{i + 1}</span>
-                {prompt}
+                {item.prompt}
               </span>
-              <textarea
-                value={answers[i]}
-                onChange={(e) => update(i, e.target.value)}
-                rows={3}
-                placeholder="…"
-              />
+              <textarea value={item.answer} onChange={(e) => update(i, e.target.value)} rows={3} placeholder="…" />
             </label>
           ))}
-          <p className="muted center small">Saved automatically on this device.</p>
+          <p className="muted center small">
+            Saved automatically on this device. <a href="#/settings">Change prompts</a>
+          </p>
         </form>
       )}
 
