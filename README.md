@@ -7,6 +7,7 @@ A minimal, installable gratitude journal. A month calendar, three prompts per da
 - **Weekly review:** a second set of prompts for looking back on the week and ahead to the next. It opens from the calendar, and from every Sunday, where the calendar highlights it. Sunday still has the normal daily prompts.
 - **Local only:** everything is stored in your browser's IndexedDB, and the app asks the browser for persistent storage. No accounts, no server, no tracking.
 - **Backup:** export your journal as a JSON file and import it on another device (entries merge, newer edits win).
+- **Bright design:** Tailwind CSS and daisyUI with a custom "sunny" theme (see `src/index.css`).
 - **Works offline** and can be installed to your home screen.
 
 ## Development

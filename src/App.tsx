@@ -17,11 +17,11 @@ export default function App() {
   const { settings } = journal
 
   return (
-    <main className="app">
+    <main className="app mx-auto max-w-md px-4">
       {journal.saveError && (
-        <p className="banner" role="alert">
+        <div role="alert" className="alert alert-error mb-3 text-sm">
           Couldn't read or write this device's storage. Export a backup from settings if you can.
-        </p>
+        </div>
       )}
       {!journal.loaded || !settings ? null : (
         <>

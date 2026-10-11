@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { todayKey } from './dates'
 import PromptSection from './PromptSection'
+import TopBar, { BackLink } from './TopBar'
 import { DEFAULT_PROMPTS, DEFAULT_WEEKLY_PROMPTS, PROMPT_LIBRARY, WEEKLY_PROMPT_LIBRARY } from './prompts'
 import { parseExport, toExport, type Entries, type ExportFile, type PersistState, type Settings } from './storage'
 
@@ -55,13 +56,7 @@ export default function SettingsView(props: Props) {
 
   return (
     <section>
-      <header className="topbar">
-        <a className="icon-btn" href="#/" aria-label="Back to calendar">
-          ‹
-        </a>
-        <h1>Settings</h1>
-        <span className="icon-btn-spacer" />
-      </header>
+      <TopBar title="Settings" start={<BackLink href="#/" label="Back to calendar" />} />
 
       <PromptSection
         title="Your daily prompts"
@@ -87,52 +82,55 @@ export default function SettingsView(props: Props) {
         }
       />
 
-      <div className="card">
-        <h2>Keeping your journal safe</h2>
-        <p className="muted small">
-          Your journal lives only on this device ({total} {total === 1 ? 'day' : 'days'}, {totalWeeks} weekly {totalWeeks === 1 ? 'review' : 'reviews'}).{' '}
-          {persist === 'persisted' && 'The browser has agreed not to clear it to free up space.'}
-          {persist === 'not-persisted' &&
-            "The browser hasn't yet agreed to keep it permanently. Installing the app to your home screen usually fixes this."}
-          {persist === 'unsupported' && "This browser can't promise to keep it permanently."}{' '}
-          It's still deleted if you clear this site's data or uninstall the app, so export a backup now and then.
-        </p>
-        {persist === 'not-persisted' && (
-          <button className="link-btn" onClick={onRetryPersist}>
-            Ask again
-          </button>
-        )}
-        <p className="small">
-          {lastExport === null
-            ? 'No backup yet.'
-            : `Last backup: ${lastExport === 0 ? 'today' : `${lastExport} ${lastExport === 1 ? 'day' : 'days'} ago`}.`}
-        </p>
-        <div className="row">
-          <button className="secondary-btn" onClick={exportData}>
-            Export backup
-          </button>
-          <button className="secondary-btn" onClick={() => fileInput.current?.click()}>
-            Import
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="application/json,.json"
-            hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) importData(file)
-              e.target.value = ''
-            }}
-          />
+      <div className="card mb-4 bg-base-100 shadow-md">
+        <div className="card-body gap-3 p-4">
+          <h2 className="card-title">Keeping your journal safe</h2>
+          <p className="text-sm text-base-content/70">
+            Your journal lives only on this device ({total} {total === 1 ? 'day' : 'days'}, {totalWeeks} weekly{' '}
+            {totalWeeks === 1 ? 'review' : 'reviews'}).{' '}
+            {persist === 'persisted' && 'The browser has agreed not to clear it to free up space.'}
+            {persist === 'not-persisted' &&
+              "The browser hasn't yet agreed to keep it permanently. Installing the app to your home screen usually fixes this."}
+            {persist === 'unsupported' && "This browser can't promise to keep it permanently."}{' '}
+            It's still deleted if you clear this site's data or uninstall the app, so export a backup now and then.
+          </p>
+          {persist === 'not-persisted' && (
+            <button className="btn btn-ghost btn-sm self-start" onClick={onRetryPersist}>
+              Ask again
+            </button>
+          )}
+          <p className="text-sm font-bold">
+            {lastExport === null
+              ? 'No backup yet.'
+              : `Last backup: ${lastExport === 0 ? 'today' : `${lastExport} ${lastExport === 1 ? 'day' : 'days'} ago`}.`}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button className="btn btn-primary" onClick={exportData}>
+              Export backup
+            </button>
+            <button className="btn btn-outline btn-primary" onClick={() => fileInput.current?.click()}>
+              Import
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) importData(file)
+                e.target.value = ''
+              }}
+            />
+          </div>
+          <p className="text-xs text-base-content/60">Importing merges days (newer edits win) and uses the backup's prompts.</p>
         </div>
-        <p className="muted small">Importing merges days (newer edits win) and uses the backup's prompts.</p>
       </div>
 
       {message && (
-        <p className="muted center" role="status">
+        <div role="status" className="alert alert-success mb-4 text-sm">
           {message}
-        </p>
+        </div>
       )}
     </section>
   )
