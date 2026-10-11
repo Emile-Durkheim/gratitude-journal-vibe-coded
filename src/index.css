@@ -293,3 +293,22 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .add-btn { flex: none; width: auto; padding: 12px 18px; }
 .secondary-btn:disabled { opacity: 0.45; cursor: default; }
 .card h2 + .muted { margin-top: 4px; }
+
+.week-btn { margin-top: 10px; }
+.week-btn.highlight { background: var(--accent-soft); color: var(--text); border: 2px solid var(--accent); }
+.day .week-mark {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.week-card { display: flex; align-items: center; gap: 12px; margin: 20px 0 0; }
+.week-card-sub { display: block; }
+.recap { margin: 8px 0 4px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 10px 12px; }
+.recap summary { cursor: pointer; font-weight: 600; }
+.recap-day { margin-top: 12px; }
+.recap-day a { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
+.recap-day p { margin: 4px 0 0; white-space: pre-wrap; }

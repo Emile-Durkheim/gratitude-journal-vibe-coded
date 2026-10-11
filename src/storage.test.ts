@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_PROMPTS } from './prompts'
+import { DEFAULT_PROMPTS, DEFAULT_WEEKLY_PROMPTS } from './prompts'
 import {
   loadAll,
   makeEntry,
@@ -9,6 +9,7 @@ import {
   sanitizeSettings,
   saveEntry,
   saveSettings,
+  saveWeek,
   toExport,
   type Entries,
   type Item,
@@ -32,13 +33,20 @@ describe('IndexedDB storage', () => {
   it('saves, loads and deletes days and settings', async () => {
     await saveEntry('2026-10-11', makeEntry('2026-10-11', items('x'), 1))
     await saveEntry('2026-10-12', makeEntry('2026-10-12', items('y'), 2))
-    await saveSettings({ prompts: ['one', 'two'], customPrompts: ['two'], lastExportAt: 5 })
+    await saveWeek('2026-10-11', makeEntry('2026-10-11', items('weekly'), 3))
+    const settings = { prompts: ['one', 'two'], customPrompts: ['two'], weeklyPrompts: ['w'], customWeeklyPrompts: [], lastExportAt: 5 }
+    await saveSettings(settings)
     let all = await loadAll()
     expect(Object.keys(all.entries).sort()).toEqual(['2026-10-11', '2026-10-12'])
-    expect(all.settings).toEqual({ prompts: ['one', 'two'], customPrompts: ['two'], lastExportAt: 5 })
+    expect(Object.keys(all.weeks)).toEqual(['2026-10-11'])
+    expect(all.weeks['2026-10-11'].items[0].answer).toBe('weekly')
+    expect(all.settings).toEqual(settings)
     await saveEntry('2026-10-12', undefined)
     all = await loadAll()
     expect(Object.keys(all.entries)).toEqual(['2026-10-11'])
+    await saveWeek('2026-10-11', undefined)
+    all = await loadAll()
+    expect(all.weeks).toEqual({})
   })
 })
 
@@ -58,10 +66,18 @@ describe('mergeEntries', () => {
 describe('export / import', () => {
   it('round-trips', () => {
     const entries = { '2026-10-11': makeEntry('2026-10-11', items('x', 'y'), 5)! }
-    const settings = { prompts: ['a'], customPrompts: ['a'], lastExportAt: null }
-    const file = parseExport(JSON.stringify(toExport(entries, settings)))
+    const weeks = { '2026-10-11': makeEntry('2026-10-11', items('w'), 6)! }
+    const settings = { prompts: ['a'], customPrompts: ['a'], weeklyPrompts: ['b'], customWeeklyPrompts: ['b'], lastExportAt: null }
+    const file = parseExport(JSON.stringify(toExport(entries, settings, weeks)))
     expect(file.entries).toEqual(entries)
+    expect(file.weeks).toEqual(weeks)
     expect(file.settings).toEqual(settings)
+  })
+
+  it('accepts backups made before weekly reviews existed', () => {
+    const file = parseExport(JSON.stringify({ version: 2, settings: { prompts: ['a'] }, entries: {} }))
+    expect(file.weeks).toEqual({})
+    expect(file.settings.weeklyPrompts).toEqual(DEFAULT_WEEKLY_PROMPTS)
   })
 
   it('rejects other files', () => {

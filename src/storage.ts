@@ -1,6 +1,6 @@
 import { createStore, del, entries as idbEntries, set, setMany } from 'idb-keyval'
 import { isValidKey } from './dates'
-import { DEFAULT_PROMPTS } from './prompts'
+import { DEFAULT_PROMPTS, DEFAULT_WEEKLY_PROMPTS } from './prompts'
 
 export type Item = { prompt: string; answer: string }
 
@@ -18,6 +18,9 @@ export type Settings = {
   prompts: string[]
   /** Prompts the user wrote themselves (shown in the library). */
   customPrompts: string[]
+  /** Active prompts for the weekly review. At least one. */
+  weeklyPrompts: string[]
+  customWeeklyPrompts: string[]
   lastExportAt: number | null
 }
 
@@ -25,13 +28,14 @@ export type ExportFile = {
   version: 2
   settings: Settings
   entries: Entries
+  /** Weekly reviews, keyed by the week's Sunday. Absent in older backups. */
+  weeks: Entries
 }
-
-export const DEFAULT_SETTINGS: Settings = { prompts: DEFAULT_PROMPTS, customPrompts: [], lastExportAt: null }
 
 const store = createStore('gratitude-journal', 'kv')
 const SETTINGS_KEY = 'settings'
 const ENTRY_PREFIX = 'entry:'
+const WEEK_PREFIX = 'week:'
 
 function isStringArray(x: unknown): x is string[] {
   return Array.isArray(x) && x.every((s) => typeof s === 'string')
@@ -60,23 +64,30 @@ export function sanitizeEntries(x: unknown): Entries {
 
 export function sanitizeSettings(x: unknown): Settings {
   const s = (x ?? {}) as Partial<Settings>
-  const prompts = isStringArray(s.prompts) ? s.prompts.filter((p) => p.trim()) : []
+  const list = (x: unknown, fallback: string[]) => {
+    const kept = isStringArray(x) ? x.filter((p) => p.trim()) : []
+    return kept.length ? kept : fallback
+  }
   return {
-    prompts: prompts.length ? prompts : DEFAULT_PROMPTS,
-    customPrompts: isStringArray(s.customPrompts) ? s.customPrompts.filter((p) => p.trim()) : [],
+    prompts: list(s.prompts, DEFAULT_PROMPTS),
+    customPrompts: list(s.customPrompts, []),
+    weeklyPrompts: list(s.weeklyPrompts, DEFAULT_WEEKLY_PROMPTS),
+    customWeeklyPrompts: list(s.customWeeklyPrompts, []),
     lastExportAt: typeof s.lastExportAt === 'number' ? s.lastExportAt : null,
   }
 }
 
-export async function loadAll(): Promise<{ entries: Entries; settings: Settings }> {
+export async function loadAll(): Promise<{ entries: Entries; weeks: Entries; settings: Settings }> {
   const rows = await idbEntries<string, unknown>(store)
-  const raw: Record<string, unknown> = {}
+  const days: Record<string, unknown> = {}
+  const weeks: Record<string, unknown> = {}
   let settings: unknown = null
   for (const [key, value] of rows) {
     if (key === SETTINGS_KEY) settings = value
-    else if (key.startsWith(ENTRY_PREFIX)) raw[key.slice(ENTRY_PREFIX.length)] = value
+    else if (key.startsWith(ENTRY_PREFIX)) days[key.slice(ENTRY_PREFIX.length)] = value
+    else if (key.startsWith(WEEK_PREFIX)) weeks[key.slice(WEEK_PREFIX.length)] = value
   }
-  return { entries: sanitizeEntries(raw), settings: sanitizeSettings(settings) }
+  return { entries: sanitizeEntries(days), weeks: sanitizeEntries(weeks), settings: sanitizeSettings(settings) }
 }
 
 /** Writes one day; an entry with no content deletes the day. */
@@ -85,9 +96,18 @@ export async function saveEntry(date: string, entry: Entry | undefined): Promise
   else await del(ENTRY_PREFIX + date, store)
 }
 
-export async function saveEntries(entries: Entries): Promise<void> {
+/** Writes one weekly review, keyed by the week's Sunday; an empty one deletes it. */
+export async function saveWeek(sunday: string, entry: Entry | undefined): Promise<void> {
+  if (entry) await set(WEEK_PREFIX + sunday, entry, store)
+  else await del(WEEK_PREFIX + sunday, store)
+}
+
+export async function saveEntries(entries: Entries, weeks: Entries): Promise<void> {
   await setMany(
-    Object.values(entries).map((e) => [ENTRY_PREFIX + e.date, e]),
+    [
+      ...Object.values(entries).map((e): [string, Entry] => [ENTRY_PREFIX + e.date, e]),
+      ...Object.values(weeks).map((e): [string, Entry] => [WEEK_PREFIX + e.date, e]),
+    ],
     store,
   )
 }
@@ -105,8 +125,8 @@ export function makeEntry(date: string, items: Item[], now = Date.now()): Entry 
   return hasContent(items) ? { date, items, updatedAt: now } : undefined
 }
 
-export function toExport(entries: Entries, settings: Settings): ExportFile {
-  return { version: 2, settings, entries }
+export function toExport(entries: Entries, settings: Settings, weeks: Entries = {}): ExportFile {
+  return { version: 2, settings, entries, weeks }
 }
 
 /** Parse an export file. Throws on anything that isn't one. */
@@ -115,7 +135,12 @@ export function parseExport(text: string): ExportFile {
   if (!data || data.version !== 2 || typeof data.entries !== 'object') {
     throw new Error('Not a Gratitude Journal backup file.')
   }
-  return { version: 2, settings: sanitizeSettings(data.settings), entries: sanitizeEntries(data.entries) }
+  return {
+    version: 2,
+    settings: sanitizeSettings(data.settings),
+    entries: sanitizeEntries(data.entries),
+    weeks: sanitizeEntries(data.weeks),
+  }
 }
 
 /** Merge by date; the newer updatedAt wins. */

@@ -54,3 +54,30 @@ export function weekdayLabels(): string[] {
     new Date(2024, 0, 1 + i).toLocaleDateString(undefined, { weekday: 'narrow' }),
   )
 }
+
+/** Weeks run Monday to Sunday and are keyed by their Sunday. Returns the Sunday on or after `key`. */
+export function weekEnd(key: string): string {
+  const d = fromKey(key)
+  d.setDate(d.getDate() + ((7 - d.getDay()) % 7))
+  return toKey(d)
+}
+
+export function isSunday(key: string): boolean {
+  return fromKey(key).getDay() === 0
+}
+
+/** The seven day keys of the week ending on `sunday`, Monday first. */
+export function weekDays(sunday: string): string[] {
+  const end = fromKey(sunday)
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(end)
+    d.setDate(end.getDate() - 6 + i)
+    return toKey(d)
+  })
+}
+
+export function formatWeekRange(sunday: string): string {
+  const [first] = weekDays(sunday)
+  const short = { day: 'numeric', month: 'short' } as const
+  return `${fromKey(first).toLocaleDateString(undefined, short)} – ${fromKey(sunday).toLocaleDateString(undefined, { ...short, year: 'numeric' })}`
+}

@@ -6,6 +6,7 @@ import {
   requestPersistence,
   saveEntries,
   saveEntry,
+  saveWeek,
   saveSettings,
   type Entries,
   type Entry,
@@ -20,17 +21,25 @@ const SAVE_DELAY_MS = 400
 export function useJournal() {
   const [loaded, setLoaded] = useState(false)
   const [entries, setEntries] = useState<Entries>({})
+  const [weeks, setWeeks] = useState<Entries>({})
   const [settings, setSettingsState] = useState<Settings | null>(null)
   const [saveError, setSaveError] = useState(false)
   const [persist, setPersist] = useState<PersistState | null>(null)
-  // Days edited but not yet written, flushed after a short pause or when the page is hidden.
-  const pending = useRef(new Map<string, Entry | undefined>())
+  // Days and weeks edited but not yet written, flushed after a short pause or when the page is hidden.
+  const entriesRef = useRef(entries)
+  const weeksRef = useRef(weeks)
+  useEffect(() => {
+    entriesRef.current = entries
+    weeksRef.current = weeks
+  }, [entries, weeks])
+  const pending = useRef(new Map<string, { kind: 'day' | 'week'; date: string; entry: Entry | undefined }>())
   const timer = useRef<number | undefined>(undefined)
 
   useEffect(() => {
     loadAll()
-      .then(({ entries, settings }) => {
+      .then(({ entries, weeks, settings }) => {
         setEntries(entries)
+        setWeeks(weeks)
         setSettingsState(settings)
       })
       .catch(() => setSaveError(true))
@@ -46,7 +55,7 @@ export function useJournal() {
     window.clearTimeout(timer.current)
     const batch = [...pending.current]
     pending.current.clear()
-    for (const [date, entry] of batch) report(saveEntry(date, entry))
+    for (const [, { kind, date, entry }] of batch) report(kind === 'day' ? saveEntry(date, entry) : saveWeek(date, entry))
   }, [report])
 
   useEffect(() => {
@@ -60,21 +69,25 @@ export function useJournal() {
     }
   }, [flush])
 
-  const setItems = useCallback(
-    (date: string, items: Item[]) => {
+  const edit = useCallback(
+    (kind: 'day' | 'week', date: string, items: Item[]) => {
       const entry = makeEntry(date, items)
-      setEntries((prev) => {
+      const apply = (prev: Entries) => {
         const next = { ...prev }
         if (entry) next[date] = entry
         else delete next[date]
         return next
-      })
-      pending.current.set(date, entry)
+      }
+      if (kind === 'day') setEntries(apply)
+      else setWeeks(apply)
+      pending.current.set(`${kind}:${date}`, { kind, date, entry })
       window.clearTimeout(timer.current)
       timer.current = window.setTimeout(flush, SAVE_DELAY_MS)
     },
     [flush],
   )
+  const setItems = useCallback((date: string, items: Item[]) => edit('day', date, items), [edit])
+  const setWeekItems = useCallback((sunday: string, items: Item[]) => edit('week', sunday, items), [edit])
 
   const updateSettings = useCallback(
     (patch: Partial<Settings>) => {
@@ -91,11 +104,12 @@ export function useJournal() {
   const importFile = useCallback(
     (file: ExportFile) => {
       flush()
-      setEntries((prev) => {
-        const next = mergeEntries(prev, file.entries)
-        report(saveEntries(next))
-        return next
-      })
+      // Merge outside the state updaters so the writes happen once, not twice under StrictMode.
+      const mergedDays = mergeEntries(entriesRef.current, file.entries)
+      const mergedWeeks = mergeEntries(weeksRef.current, file.weeks)
+      setEntries(mergedDays)
+      setWeeks(mergedWeeks)
+      report(saveEntries(mergedDays, mergedWeeks))
       setSettingsState(file.settings)
       report(saveSettings(file.settings))
     },
@@ -106,5 +120,5 @@ export function useJournal() {
     requestPersistence().then(setPersist)
   }, [])
 
-  return { loaded, entries, settings, saveError, persist, setItems, updateSettings, importFile, flush, retryPersist }
+  return { loaded, entries, weeks, settings, saveError, persist, setItems, setWeekItems, updateSettings, importFile, flush, retryPersist }
 }

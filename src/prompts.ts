@@ -93,3 +93,74 @@ export const DEFAULT_PROMPTS: string[] = [
   'Someone who made my day better, and what they did',
   'Something good in my life I might never have had. What if it were gone?',
 ]
+
+export const WEEKLY_PROMPT_LIBRARY: PromptGroup[] = [
+  {
+    title: 'Look back',
+    prompts: [
+      {
+        text: 'The best moments of my week, and why they mattered',
+        why: 'Savoring good moments after the fact extends their benefit (Bryant, 2003).',
+      },
+      {
+        text: 'Three good things from this week, and why they happened',
+        why: 'Three Good Things, at a weekly pace (Seligman et al., 2005).',
+      },
+      {
+        text: 'Someone who made my week better, and what I want to tell them',
+        why: 'Gratitude to people does more than gratitude for things (Emmons).',
+      },
+    ],
+  },
+  {
+    title: 'Gratitude list',
+    prompts: [
+      {
+        text: 'Up to five things I am grateful for this week',
+        why: 'Weekly lists raised life appraisals and optimism and cut physical symptoms over 10 weeks (Emmons & McCullough, 2003).',
+      },
+      {
+        text: 'Something I take for granted that I would miss if it were gone',
+        why: 'Mental subtraction lifts mood more than counting blessings (Koo et al., 2008).',
+      },
+    ],
+  },
+  {
+    title: 'Strengths and kindness',
+    prompts: [
+      {
+        text: 'A strength I used this week, what I did with it, and what I learned',
+        why: 'Using strengths and writing up what you learned: happier for six months (Seligman et al., 2005).',
+      },
+      {
+        text: 'Kind things I did or received this week, and how they felt',
+        why: 'Counting acts of kindness, bunched into one day a week, raised happiness (Lyubomirsky et al., 2005).',
+      },
+    ],
+  },
+  {
+    title: 'Look ahead',
+    prompts: [
+      {
+        text: 'What would make next week a good one? One small thing I will do for it',
+        why: 'Picturing a good future in detail raises positive mood (King, 2001; Sheldon & Lyubomirsky, 2006).',
+      },
+      {
+        text: 'One thing I am looking forward to next week',
+        why: 'Anticipation is a form of savoring.',
+      },
+      {
+        text: 'A hard thing from this week, and anything good that came out of it',
+        why: 'Benefit-finding: grateful reappraisal of difficult events (Watkins et al., 2008).',
+      },
+    ],
+  },
+]
+
+/** Starting weekly set: look back, give thanks, use a strength, look ahead. */
+export const DEFAULT_WEEKLY_PROMPTS: string[] = [
+  'The best moments of my week, and why they mattered',
+  'Up to five things I am grateful for this week',
+  'A strength I used this week, what I did with it, and what I learned',
+  'What would make next week a good one? One small thing I will do for it',
+]

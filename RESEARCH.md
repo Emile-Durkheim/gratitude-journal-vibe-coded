@@ -40,6 +40,31 @@ This is the research behind the app's prompt library and its three starting prom
 
 **No streaks or reminders.** The frequency finding suggests daily pressure can backfire.
 
+## Weekly review prompts
+
+The weekly review opens from the calendar and from any Sunday's day view. On Sunday the calendar highlights it. Sunday still has the normal daily prompts too. The reasoning:
+
+- **Weekly is a research-backed pace.** Emmons & McCullough (2003, Study 1) had students write a gratitude list ("up to five things") once a week for 10 weeks. Compared with groups listing hassles or neutral events, they felt better about their lives overall, were more optimistic about the coming week, reported fewer physical symptoms and exercised more (it did not raise positive affect, contrary to what the authors expected). Lyubomirsky and colleagues found that once a week worked better than three times a week, which is a reason to keep a distinct, slower-paced review rather than just more daily prompts.
+- **Writing up the week is part of the strengths exercise.** In Seligman et al. (2005), people used a personal strength in a new way each day for a week, then wrote about the strengths they used, what they did, how they felt and what they learned. They were happier and less depressed right afterward, and the happiness gain lasted six months (Greater Good in Action summary).
+- **Looking ahead helps too.** "Best Possible Self" writing means describing a detailed, positive future. Student samples reported more positive emotion afterward (Sheldon & Lyubomirsky, 2006; King, 2001), and weekly writing for four weeks raised positive emotions and social connection (Layous et al., 2013). The evidence is mostly from student samples, and benefits were smaller in some groups.
+
+| Weekly prompt | Based on |
+| --- | --- |
+| The best moments of my week, and why they mattered | Savoring and positive reminiscence (Bryant, 2003) |
+| Three good things from this week, and why they happened | Seligman et al. (2005), at a weekly pace |
+| Someone who made my week better, and what I want to tell them | Gratitude toward people (Emmons) |
+| Up to five things I am grateful for this week | Emmons & McCullough (2003), Study 1 |
+| Something I take for granted that I would miss if it were gone | Koo et al. (2008) |
+| A strength I used this week, what I did with it, and what I learned | Seligman et al. (2005) |
+| Kind things I did or received this week, and how they felt | Lyubomirsky, Sheldon & Schkade (2005) |
+| What would make next week a good one? One small thing I will do for it | Best Possible Self (King, 2001; Sheldon & Lyubomirsky, 2006) |
+| One thing I am looking forward to next week | Anticipation as savoring |
+| A hard thing from this week, and anything good that came out of it | Watkins et al. (2008) |
+
+**Default weekly set (four prompts):** look back (best moments), give thanks (five things), use a strength (what I learned) and look ahead (one small thing for next week). You can pick any number and write your own.
+
+**Not verified in this pass:** the Bryant (2003) savoring prompts, the kindness prompt's "bunched into one day" detail (Lyubomirsky et al., 2005) and Layous et al. (2013) come from the published literature as I remember it, or from a secondary summary. I did not re-read the original papers. The Emmons & McCullough numbers above come from a Psychology Today summary of the study.
+
 ## Sources
 
 - Seligman et al. (2005), summarized at Greater Good in Action: https://ggia.berkeley.edu/practice/three-good-things
@@ -50,5 +75,10 @@ This is the research behind the app's prompt library and its three starting prom
 - Mental subtraction practice: https://ggia.berkeley.edu/practice/mental_subtraction_positive_events
 - Bohlmeijer et al. (2021), RCT with 6-month follow-up, discusses Davis et al. (2016): https://link.springer.com/article/10.1007/s10902-020-00261-5
 - Cregg & Cheavens (2021), meta-analysis on depression and anxiety: https://link.springer.com/article/10.1007/s10902-020-00236-6
+- Best Possible Self (Greater Good in Action): https://ggia.berkeley.edu/practice/best_possible_self
+- Use Your Strengths (Greater Good in Action): https://ggia.berkeley.edu/practice/use_your_strengths
+- Emmons & McCullough (2003) study design, summarized: https://www.psychologytoday.com/us/blog/the-mindful-self-express/201511/how-gratitude-leads-to-a-happier-life
+- Sheldon & Lyubomirsky (2006), record: https://worlddatabaseofhappiness.eur.nl/publications/how-to-increase-and-sustain-positive-emotion-the-effect-of-expressing-gratitude-and-visualizing-best-possible-selves-5824
+- Lyubomirsky, Sheldon & Schkade (2005), paper: https://sonjalyubomirsky.com/wp-content/uploads/2024/07/Lyubomirsky-Sheldon-Schkade-2005.pdf
 
 *Citation details for Toepfer et al. (2012), Algoe (2012) and Watkins et al. (2008) are from the published literature and were not re-fetched for this summary.*

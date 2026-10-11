@@ -1,16 +1,17 @@
 import { useState } from 'react'
-import { formatLong, fromKey, toKey, todayKey } from './dates'
+import { formatLong, fromKey, isSunday, toKey, todayKey } from './dates'
 import type { Entry, Item } from './storage'
 
 type Props = {
   date: string
   entry: Entry | undefined
+  hasWeekReview: boolean
   currentPrompts: string[]
   onChange: (date: string, items: Item[]) => void
   onBack: () => void
 }
 
-export default function DayView({ date, entry, currentPrompts, onChange, onBack }: Props) {
+export default function DayView({ date, entry, hasWeekReview, currentPrompts, onChange, onBack }: Props) {
   const today = todayKey()
   const future = date > today
   // A day that already has an entry keeps the prompts it was written with.
@@ -60,6 +61,18 @@ export default function DayView({ date, entry, currentPrompts, onChange, onBack 
             Saved automatically on this device. <a href="#/settings">Change prompts</a>
           </p>
         </form>
+      )}
+
+      {!future && isSunday(date) && (
+        <a className="card week-card" href={`#/week/${date}`}>
+          <span className="grow">
+            <strong>Weekly review</strong>
+            <span className="muted small week-card-sub">
+              {hasWeekReview ? 'Written. Tap to read or edit.' : 'Sunday is a good day to look back on the week.'}
+            </span>
+          </span>
+          <span aria-hidden="true">›</span>
+        </a>
       )}
 
       <nav className="day-nav">

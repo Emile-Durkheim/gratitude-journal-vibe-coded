@@ -1,14 +1,15 @@
-import { formatLong, formatMonth, monthGrid, todayKey, weekdayLabels } from './dates'
+import { formatLong, formatMonth, isSunday, monthGrid, todayKey, weekEnd, weekdayLabels } from './dates'
 import type { Entries } from './storage'
 
 type Props = {
   year: number
   month: number
   entries: Entries
+  weeks: Entries
   onMonthChange: (year: number, month: number) => void
 }
 
-export default function CalendarView({ year, month, entries, onMonthChange }: Props) {
+export default function CalendarView({ year, month, entries, weeks, onMonthChange }: Props) {
   const today = todayKey()
   const now = new Date()
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth()
@@ -58,7 +59,7 @@ export default function CalendarView({ year, month, entries, onMonthChange }: Pr
             <tr key={i}>
               {week.map((key, j) => (
                 <td key={j}>
-                  {key && <DayCell dateKey={key} today={today} filled={!!entries[key]} />}
+                  {key && <DayCell dateKey={key} today={today} filled={!!entries[key]} weekDone={!!weeks[key]} />}
                 </td>
               ))}
             </tr>
@@ -80,17 +81,20 @@ export default function CalendarView({ year, month, entries, onMonthChange }: Pr
       <a className="primary-btn" href={`#/day/${today}`}>
         Write today's entry
       </a>
+      <a className={isSunday(today) ? 'primary-btn week-btn highlight' : 'secondary-btn week-btn'} href={`#/week/${weekEnd(today)}`}>
+        {isSunday(today) ? "It's Sunday: review your week" : 'Review this week'}
+      </a>
     </section>
   )
 }
 
-function DayCell({ dateKey, today, filled }: { dateKey: string; today: string; filled: boolean }) {
+function DayCell({ dateKey, today, filled, weekDone }: { dateKey: string; today: string; filled: boolean; weekDone: boolean }) {
   const day = Number(dateKey.slice(8))
   const future = dateKey > today
   const classes = ['day', dateKey === today && 'today', filled && 'filled', future && 'future']
     .filter(Boolean)
     .join(' ')
-  const label = `${formatLong(dateKey)}${filled ? ', has entry' : ''}`
+  const label = `${formatLong(dateKey)}${filled ? ', has entry' : ''}${weekDone ? ', weekly review written' : ''}`
   if (future) {
     return (
       <span className={classes} aria-label={label} aria-disabled="true">
@@ -102,6 +106,7 @@ function DayCell({ dateKey, today, filled }: { dateKey: string; today: string; f
     <a className={classes} href={`#/day/${dateKey}`} aria-label={label} aria-current={dateKey === today ? 'date' : undefined}>
       {day}
       <span className="dot" aria-hidden="true" />
+      {weekDone && <span className="week-mark" aria-hidden="true" />}
     </a>
   )
 }

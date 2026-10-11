@@ -2,6 +2,7 @@ import { useState } from 'react'
 import CalendarView from './CalendarView'
 import DayView from './DayView'
 import SettingsView from './SettingsView'
+import WeekView from './WeekView'
 import { fromKey } from './dates'
 import { useHashRoute } from './useHashRoute'
 import { useJournal } from './useJournal'
@@ -29,6 +30,7 @@ export default function App() {
               key={route.date}
               date={route.date}
               entry={journal.entries[route.date]}
+              hasWeekReview={!!journal.weeks[route.date]}
               currentPrompts={settings.prompts}
               onChange={journal.setItems}
               onBack={() => {
@@ -37,9 +39,20 @@ export default function App() {
               }}
             />
           )}
+          {route.name === 'week' && (
+            <WeekView
+              key={route.sunday}
+              sunday={route.sunday}
+              entry={journal.weeks[route.sunday]}
+              days={journal.entries}
+              currentPrompts={settings.weeklyPrompts}
+              onChange={journal.setWeekItems}
+            />
+          )}
           {route.name === 'settings' && (
             <SettingsView
               entries={journal.entries}
+              weeks={journal.weeks}
               settings={settings}
               persist={journal.persist}
               onSettingsChange={journal.updateSettings}
@@ -53,6 +66,7 @@ export default function App() {
               year={month.year}
               month={month.month}
               entries={journal.entries}
+              weeks={journal.weeks}
               onMonthChange={(year, m) => setMonth({ year, month: m })}
             />
           )}
