@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { todayKey } from './dates'
+import InstallCard from './InstallCard'
 import PromptSection from './PromptSection'
 import TopBar, { BackLink } from './TopBar'
 import { DEFAULT_PROMPTS, DEFAULT_WEEKLY_PROMPTS, PROMPT_LIBRARY, WEEKLY_PROMPT_LIBRARY } from './prompts'
@@ -57,6 +58,8 @@ export default function SettingsView(props: Props) {
   return (
     <section>
       <TopBar title="Settings" start={<BackLink href="#/" label="Back to the wreath" />} />
+
+      <InstallCard />
 
       <PromptSection
         title="Your daily prompts"

@@ -1,3 +1,4 @@
+import { useInstall } from './install'
 import { FlowerG, LeafG, flowerColor, petalsFor } from './flower'
 import TopBar, { CalendarIcon, GearIcon, IconLink } from './TopBar'
 import { formatLong, formatWeekRange, fromKey, isSunday, toKey, todayKey, weekDays, weekEnd } from './dates'
@@ -30,6 +31,7 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
   }
   const later = shift(1)
   const isThisWeek = sunday === thisWeek
+  const install = useInstall()
 
   return (
     <section>
@@ -136,6 +138,20 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
           {isSunday(today) && isThisWeek && !reviewed ? "It's Sunday: review your week" : reviewed ? 'Read the weekly review' : 'Review this week'}
         </a>
       </div>
+
+      {install.kind !== 'installed' && (
+        <p className="mt-5 text-center text-sm italic opacity-70">
+          {install.kind === 'prompt' ? (
+            <button className="link text-rose" onClick={install.install}>
+              Install as an app
+            </button>
+          ) : (
+            <a className="link text-rose" href="#/settings">
+              Add the journal to your home screen
+            </a>
+          )}
+        </p>
+      )}
     </section>
   )
 }
