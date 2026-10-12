@@ -44,14 +44,14 @@ export default function PromptSection({ title, intro, prompts, custom, library, 
 
   return (
     <>
-      <div className="card mb-4 bg-base-100 shadow-md">
+      <div className="card mb-4 rounded-sm border border-base-300 bg-base-100">
         <div className="card-body gap-2 p-4">
-          <h2 className="card-title">{title}</h2>
+          <h2 className="card-title text-xl font-normal italic">{title}</h2>
           <p className="text-sm text-base-content/70">{intro}</p>
           <ol className="active-list mt-2 grid gap-2">
             {prompts.map((p, i) => (
-              <li key={p} className="flex items-center gap-1 rounded-2xl bg-base-200 py-2 pl-3 pr-1">
-                <span className="mr-2 grid size-7 flex-none place-items-center rounded-full bg-primary text-sm font-extrabold text-primary-content">
+              <li key={p} className="flex items-center gap-1 rounded-sm bg-base-200 py-2 pl-3 pr-1">
+                <span className="mr-2 grid size-7 flex-none place-items-center rounded-full bg-primary text-sm font-normal text-primary-content">
                   {i + 1}
                 </span>
                 <span className="grow">{p}</span>
@@ -80,14 +80,14 @@ export default function PromptSection({ title, intro, prompts, custom, library, 
         </div>
       </div>
 
-      <div className="card mb-4 bg-base-100 shadow-md">
+      <div className="card mb-4 rounded-sm border border-base-300 bg-base-100">
         <div className="card-body gap-2 p-4">
-          <h2 className="card-title">Choose {title.toLowerCase().replace(/^your /, '')}</h2>
+          <h2 className="card-title text-xl font-normal italic">Choose {title.toLowerCase().replace(/^your /, '')}</h2>
           <p className="text-sm text-base-content/70">Tap to add or remove. Each one notes the research behind it.</p>
           <div className="library -mx-1 mt-1 max-h-96 overflow-y-auto overscroll-contain px-1" role="list">
             {library.map((group) => (
               <div key={group.title} role="presentation">
-                <h3 className="sticky top-0 z-10 bg-base-100 pb-1.5 pt-3 text-xs font-extrabold uppercase tracking-wider text-secondary-content/70">
+                <h3 className="sticky top-0 z-10 bg-base-100 pb-1.5 pt-3 text-xs font-semibold uppercase tracking-widest opacity-60">
                   {group.title}
                 </h3>
                 {group.prompts.map((lp) => (
@@ -97,7 +97,7 @@ export default function PromptSection({ title, intro, prompts, custom, library, 
             ))}
             {custom.length > 0 && (
               <div role="presentation">
-                <h3 className="sticky top-0 z-10 bg-base-100 pb-1.5 pt-3 text-xs font-extrabold uppercase tracking-wider text-secondary-content/70">
+                <h3 className="sticky top-0 z-10 bg-base-100 pb-1.5 pt-3 text-xs font-semibold uppercase tracking-widest opacity-60">
                   Your own
                 </h3>
                 {custom.map((text) => (
@@ -143,15 +143,15 @@ function LibraryRow(props: {
   return (
     <div className="mb-2 flex items-center gap-1" role="listitem">
       <button
-        className={`library-item flex flex-1 items-start gap-3 rounded-2xl border-2 p-3 text-left transition-colors ${
-          on ? 'on border-primary bg-primary/20' : 'border-base-300 bg-base-100 hover:bg-base-200'
+        className={`library-item flex flex-1 items-start gap-3 rounded-sm border p-3 text-left transition-colors ${
+          on ? 'on border-rose/60 bg-rose/8' : 'border-base-300 bg-base-100 hover:bg-base-200'
         }`}
         aria-pressed={on}
         onClick={() => onToggle(text)}
       >
         <span
           className={`mt-0.5 grid size-6 flex-none place-items-center rounded-full text-sm font-bold ${
-            on ? 'bg-primary text-primary-content' : 'border-2 border-base-300 text-base-content/50'
+            on ? 'bg-rose text-white' : 'border border-base-300 text-base-content/50'
           }`}
           aria-hidden="true"
         >

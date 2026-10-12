@@ -56,7 +56,7 @@ export default function SettingsView(props: Props) {
 
   return (
     <section>
-      <TopBar title="Settings" start={<BackLink href="#/" label="Back to calendar" />} />
+      <TopBar title="Settings" start={<BackLink href="#/" label="Back to the wreath" />} />
 
       <PromptSection
         title="Your daily prompts"
@@ -82,9 +82,9 @@ export default function SettingsView(props: Props) {
         }
       />
 
-      <div className="card mb-4 bg-base-100 shadow-md">
+      <div className="card mb-4 rounded-sm border border-base-300 bg-base-100">
         <div className="card-body gap-3 p-4">
-          <h2 className="card-title">Keeping your journal safe</h2>
+          <h2 className="card-title text-xl font-normal italic">Keeping your journal safe</h2>
           <p className="text-sm text-base-content/70">
             Your journal lives only on this device ({total} {total === 1 ? 'day' : 'days'}, {totalWeeks} weekly{' '}
             {totalWeeks === 1 ? 'review' : 'reviews'}).{' '}

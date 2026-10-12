@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import type { Item } from './storage'
 
 type Props = {
@@ -6,29 +7,43 @@ type Props = {
   onAnswer: (index: number, answer: string) => void
 }
 
-/** One card per prompt, each with a text box. Shared by the day and week views. */
+/** Prompts in italic serif, answers handwritten on ruled lines. Shared by the day and week views. */
 export default function PromptFields({ items, rows, onAnswer }: Props) {
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-6">
       {items.map((item, i) => (
-        <label key={i} className="prompt card bg-base-100 shadow-md">
-          <span className="card-body gap-3 p-4">
-            <span className="prompt-label flex items-start gap-3 font-bold leading-snug">
-              <span className="grid size-7 flex-none place-items-center rounded-full bg-primary text-sm font-extrabold text-primary-content">
-                {i + 1}
-              </span>
-              <span>{item.prompt}</span>
+        <label key={i} className="prompt block">
+          <span className="prompt-label flex items-baseline gap-2 text-lg italic leading-snug">
+            <span className="flex-none text-sm not-italic text-rose" aria-hidden="true">
+              ✿ {i + 1}
             </span>
-            <textarea
-              className="textarea textarea-primary w-full bg-base-100 text-base"
-              value={item.answer}
-              onChange={(e) => onAnswer(i, e.target.value)}
-              rows={rows}
-              placeholder="Write here…"
-            />
+            <span>{item.prompt}</span>
           </span>
+          <Ruled value={item.answer} rows={rows} onChange={(v) => onAnswer(i, v)} />
         </label>
       ))}
     </div>
+  )
+}
+
+function Ruled({ value, rows, onChange }: { value: string; rows: number; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLTextAreaElement>(null)
+  // Grow with the writing so the page reads like paper, not a scroll box.
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [value])
+  return (
+    <textarea
+      ref={ref}
+      className="ruled mt-1"
+      style={{ minHeight: `calc(2.25rem * ${rows})` }}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      rows={rows}
+      placeholder="write here…"
+    />
   )
 }

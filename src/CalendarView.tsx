@@ -1,16 +1,19 @@
-import { formatLong, formatMonth, isSunday, monthGrid, todayKey, weekEnd, weekdayLabels } from './dates'
+import { Flower, flowerColor, petalsFor } from './flower'
+import { formatLong, formatMonth, monthGrid, todayKey, weekdayLabels } from './dates'
 import type { Entries } from './storage'
-import TopBar from './TopBar'
+import TopBar, { GearIcon, IconLink, WreathIcon } from './TopBar'
 
 type Props = {
   year: number
   month: number
   entries: Entries
   weeks: Entries
+  promptCount: number
   onMonthChange: (year: number, month: number) => void
 }
 
-export default function CalendarView({ year, month, entries, weeks, onMonthChange }: Props) {
+/** The whole month as a pressing sheet: a small flower for each written day. */
+export default function CalendarView({ year, month, entries, weeks, promptCount, onMonthChange }: Props) {
   const today = todayKey()
   const now = new Date()
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth()
@@ -23,108 +26,101 @@ export default function CalendarView({ year, month, entries, weeks, onMonthChang
   return (
     <section>
       <TopBar
-        title="☀️ Gratitude Journal"
+        title="The Flower Press"
+        start={
+          <IconLink href="#/" label="Wreath view">
+            <WreathIcon />
+          </IconLink>
+        }
         end={
-          <a className="btn btn-circle btn-ghost" href="#/settings" aria-label="Settings">
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"
-                transform="translate(-1 0)"
-              />
-            </svg>
-          </a>
+          <IconLink href="#/settings" label="Settings">
+            <GearIcon />
+          </IconLink>
         }
       />
 
-      <div className="card bg-base-100 shadow-md">
-        <div className="card-body gap-2 p-3">
-          <div className="flex items-center justify-between">
-            <button className="btn btn-circle btn-ghost text-2xl" onClick={() => shift(-1)} aria-label="Previous month">
-              ‹
-            </button>
-            <h2 className="text-lg font-extrabold">{formatMonth(year, month)}</h2>
-            <button className="btn btn-circle btn-ghost text-2xl" onClick={() => shift(1)} aria-label="Next month">
-              ›
-            </button>
-          </div>
-
-          <table className="calendar w-full" role="grid">
-            <thead>
-              <tr>
-                {weekdayLabels().map((label, i) => (
-                  <th key={i} scope="col" className="pb-1 text-xs font-bold text-base-content/60">
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {monthGrid(year, month).map((week, i) => (
-                <tr key={i}>
-                  {week.map((key, j) => (
-                    <td key={j}>
-                      {key && <DayCell dateKey={key} today={today} filled={!!entries[key]} weekDone={!!weeks[key]} />}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="flex min-h-9 items-center justify-between px-1">
-            <span className="text-sm text-base-content/60">
-              {count === 0 ? 'No entries this month' : `${count} ${count === 1 ? 'day' : 'days'} written ✨`}
-            </span>
-            {!isCurrentMonth && (
-              <button className="btn btn-ghost btn-sm text-secondary-content" onClick={() => onMonthChange(now.getFullYear(), now.getMonth())}>
-                Today
-              </button>
-            )}
-          </div>
-        </div>
+      <div className="flex items-center justify-between">
+        <button className="btn btn-ghost btn-sm text-2xl" onClick={() => shift(-1)} aria-label="Previous month">
+          ‹
+        </button>
+        <h2 className="text-2xl italic">{formatMonth(year, month)}</h2>
+        <button className="btn btn-ghost btn-sm text-2xl" onClick={() => shift(1)} aria-label="Next month">
+          ›
+        </button>
       </div>
 
-      <div className="mt-4 grid gap-3">
-        <a className="btn btn-primary btn-lg w-full" href={`#/day/${today}`}>
-          Write today's entry
-        </a>
-        <a
-          className={`week-btn btn btn-lg w-full ${isSunday(today) ? 'btn-secondary highlight' : 'btn-outline btn-secondary'}`}
-          href={`#/week/${weekEnd(today)}`}
-        >
-          {isSunday(today) ? "🌟 It's Sunday: review your week" : 'Review this week'}
-        </a>
+      <table className="calendar mt-2 w-full" role="grid">
+        <thead>
+          <tr>
+            {weekdayLabels().map((label, i) => (
+              <th key={i} scope="col" className="pb-1 text-[0.7rem] font-normal uppercase tracking-widest opacity-60">
+                {label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {monthGrid(year, month).map((week, i) => (
+            <tr key={i}>
+              {week.map((key, j) => (
+                <td key={j}>
+                  {key && <DayCell dateKey={key} today={today} entries={entries} weekDone={!!weeks[key]} promptCount={promptCount} />}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="mt-2 flex min-h-9 items-center justify-between border-t border-base-300 pt-2">
+        <span className="text-sm italic opacity-70">
+          {count === 0 ? 'Nothing pressed this month' : `${count} ${count === 1 ? 'flower' : 'flowers'} pressed`}
+        </span>
+        {!isCurrentMonth && (
+          <button className="btn btn-ghost btn-sm text-rose" onClick={() => onMonthChange(now.getFullYear(), now.getMonth())}>
+            Today
+          </button>
+        )}
       </div>
     </section>
   )
 }
 
-function DayCell({ dateKey, today, filled, weekDone }: { dateKey: string; today: string; filled: boolean; weekDone: boolean }) {
+function DayCell({ dateKey, today, entries, weekDone, promptCount }: {
+  dateKey: string
+  today: string
+  entries: Entries
+  weekDone: boolean
+  promptCount: number
+}) {
+  const entry = entries[dateKey]
   const day = Number(dateKey.slice(8))
   const future = dateKey > today
   const isToday = dateKey === today
   const classes = [
-    'day relative grid aspect-square place-items-center rounded-2xl text-base font-bold',
-    filled ? 'filled bg-primary text-primary-content shadow-sm' : 'bg-base-200 text-base-content',
-    isToday && 'today ring-2 ring-secondary ring-offset-2 ring-offset-base-100',
-    future && 'future bg-transparent text-base-content/30',
-    !future && 'transition-transform active:scale-95 hover:brightness-95',
-  ]
-    .filter(Boolean)
-    .join(' ')
-  const label = `${formatLong(dateKey)}${filled ? ', has entry' : ''}${weekDone ? ', weekly review written' : ''}`
+    'day relative flex aspect-[4/5] flex-col items-center justify-start rounded-sm pt-0.5 text-sm',
+    entry ? 'filled bg-base-100' : '',
+    isToday ? 'today outline-[1.5px] outline-dashed outline-rose' : '',
+    future ? 'future opacity-35' : 'hover:bg-base-100',
+  ].join(' ')
+  const label = `${formatLong(dateKey)}${entry ? ', has entry' : ''}${weekDone ? ', weekly review written' : ''}`
+  const inner = (
+    <>
+      <span className={`italic leading-none ${isToday ? 'font-semibold text-rose' : 'opacity-70'}`}>{day}</span>
+      {entry && <Flower size={30} {...petalsFor(entry.items, promptCount)} color={flowerColor(dateKey)} rotate={day * 23} />}
+      {weekDone && <span className="week-mark absolute bottom-0.5 right-1 text-[0.65rem] text-rose" aria-hidden="true">✿</span>}
+    </>
+  )
   if (future) {
     return (
       <span className={classes} aria-label={label} aria-disabled="true">
-        {day}
+        {inner}
       </span>
     )
   }
   return (
     <a className={classes} href={`#/day/${dateKey}`} aria-label={label} aria-current={isToday ? 'date' : undefined}>
-      {day}
-      {weekDone && <span className="week-mark absolute right-1 top-1 size-2.5 rounded-full bg-secondary" aria-hidden="true" />}
+      {inner}
     </a>
   )
 }

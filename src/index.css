@@ -4,49 +4,63 @@
   themes: false;
 }
 
-/* A sunny, bright theme: warm cream surfaces, amber primary, coral secondary, teal accent. */
+/* "Flower press": cream paper, ink-green type, dusty-rose and sage accents. */
 @plugin 'daisyui/theme' {
-  name: 'sunny';
+  name: 'press';
   default: true;
   color-scheme: light;
-  --color-base-100: oklch(99.5% 0.012 95);
-  --color-base-200: oklch(97.5% 0.035 90);
-  --color-base-300: oklch(93% 0.06 85);
-  --color-base-content: oklch(30% 0.05 50);
-  --color-primary: oklch(83% 0.165 78);
-  --color-primary-content: oklch(30% 0.07 55);
-  --color-secondary: oklch(76% 0.155 20);
-  --color-secondary-content: oklch(27% 0.07 20);
-  --color-accent: oklch(80% 0.12 190);
-  --color-accent-content: oklch(26% 0.05 200);
-  --color-neutral: oklch(40% 0.06 50);
-  --color-neutral-content: oklch(98% 0.01 90);
-  --color-info: oklch(80% 0.12 235);
-  --color-info-content: oklch(25% 0.06 235);
-  --color-success: oklch(80% 0.17 150);
-  --color-success-content: oklch(25% 0.07 150);
-  --color-warning: oklch(86% 0.16 90);
-  --color-warning-content: oklch(30% 0.07 80);
-  --color-error: oklch(70% 0.19 25);
+  --color-base-100: oklch(98.6% 0.014 88);
+  --color-base-200: oklch(96% 0.022 85);
+  --color-base-300: oklch(89% 0.03 80);
+  --color-base-content: oklch(32% 0.03 140);
+  --color-primary: oklch(32% 0.03 140);
+  --color-primary-content: oklch(96% 0.022 85);
+  --color-secondary: oklch(58% 0.11 5);
+  --color-secondary-content: oklch(98% 0.01 85);
+  --color-accent: oklch(66% 0.06 140);
+  --color-accent-content: oklch(98% 0.01 85);
+  --color-neutral: oklch(40% 0.03 140);
+  --color-neutral-content: oklch(96% 0.02 85);
+  --color-info: oklch(70% 0.06 230);
+  --color-info-content: oklch(98% 0.01 230);
+  --color-success: oklch(70% 0.08 145);
+  --color-success-content: oklch(25% 0.04 145);
+  --color-warning: oklch(80% 0.1 80);
+  --color-warning-content: oklch(30% 0.05 80);
+  --color-error: oklch(58% 0.14 25);
   --color-error-content: oklch(98% 0.01 25);
-  --radius-selector: 1rem;
-  --radius-field: 0.9rem;
-  --radius-box: 1.25rem;
+  --radius-selector: 0.25rem;
+  --radius-field: 0.2rem;
+  --radius-box: 0.3rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
-  --border: 1.5px;
-  --depth: 1;
+  --border: 1px;
+  --depth: 0;
   --noise: 0;
 }
 
+@theme {
+  --font-serif: 'EB Garamond', 'Iowan Old Style', Palatino, Georgia, serif;
+  --font-hand: 'Caveat', 'Bradley Hand', 'Segoe Print', cursive;
+  --color-ink: oklch(32% 0.03 140);
+  --color-rose: oklch(58% 0.11 5);
+  --color-sage: oklch(66% 0.06 140);
+  --color-paper: oklch(96% 0.022 85);
+  --color-faded: oklch(55% 0.02 100);
+  --color-pen: oklch(42% 0.08 255);
+}
+
 :root {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-serif);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   min-height: 100vh;
-  background: linear-gradient(180deg, oklch(98.5% 0.04 95) 0%, oklch(97% 0.05 70) 45%, oklch(96.5% 0.04 20) 100%) fixed;
+  background-color: var(--color-paper);
+  background-image: radial-gradient(rgba(120, 90, 40, 0.05) 1px, transparent 1px);
+  background-size: 5px 5px;
+  font-size: 18px;
 }
 
 .app {
@@ -54,5 +68,41 @@ body {
   padding-bottom: max(2rem, env(safe-area-inset-bottom));
 }
 
-.calendar { border-collapse: separate; border-spacing: 6px; table-layout: fixed; }
+.btn {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  font-size: 1.05rem;
+}
+
+/* Answers are handwritten on ruled lines. Line height and the rule spacing must match. */
+.ruled {
+  font-family: var(--font-hand);
+  font-size: 1.6rem;
+  line-height: 2.25rem;
+  color: var(--color-pen);
+  background: repeating-linear-gradient(transparent 0 calc(2.25rem - 1px), oklch(42% 0.08 255 / 0.22) calc(2.25rem - 1px) 2.25rem);
+  padding: 0 0.15rem;
+  min-height: calc(2.25rem * 3);
+  width: 100%;
+  resize: none;
+  outline: none;
+  border: none;
+  overflow: hidden;
+  display: block;
+}
+.ruled::placeholder { color: oklch(55% 0.02 100 / 0.5); }
+
+.calendar { border-collapse: separate; border-spacing: 4px; table-layout: fixed; }
 .calendar td { padding: 0; }
+
+.spine::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  background: linear-gradient(90deg, oklch(84% 0.03 80), transparent);
+  pointer-events: none;
+}

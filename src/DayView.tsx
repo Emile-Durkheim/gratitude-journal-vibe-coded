@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Flower, flowerColor } from './flower'
 import PromptFields from './PromptFields'
 import TopBar, { BackLink } from './TopBar'
 import { formatLong, fromKey, isSunday, toKey, todayKey } from './dates'
@@ -27,6 +28,8 @@ export default function DayView({ date, entry, hasWeekReview, currentPrompts, on
     onChange(date, next)
   }
 
+  const filled = items.filter((i) => i.answer.trim()).length
+
   const neighbour = (delta: number) => {
     const d = fromKey(date)
     d.setDate(d.getDate() + delta)
@@ -38,32 +41,43 @@ export default function DayView({ date, entry, hasWeekReview, currentPrompts, on
   return (
     <section>
       <TopBar
-        title={date === today ? 'Today' : formatLong(date)}
-        start={<BackLink href="#/" label="Back to calendar" onClick={onBack} />}
+        title={date === today ? 'Today' : 'A pressed day'}
+        start={<BackLink href="#/" label="Back to the wreath" onClick={onBack} />}
       />
-      {date === today && <p className="mb-3 text-center text-base-content/60">{formatLong(date)}</p>}
+      <div className="page-head mb-5 flex items-center gap-4">
+        <span className="text-6xl leading-none">{Number(date.slice(8))}</span>
+        <span className="grow text-lg italic leading-tight opacity-80">{formatLong(date)}</span>
+        {!future && (
+          <span className="flex flex-col items-center">
+            <Flower size={64} stem petals={items.length} filled={filled} color={flowerColor(date)} />
+            <span className="petal-count text-xs italic opacity-60">
+              {filled} of {items.length} petals
+            </span>
+          </span>
+        )}
+      </div>
 
       {future ? (
-        <p className="empty my-12 text-center text-base-content/60">This day hasn't happened yet.</p>
+        <p className="empty my-12 text-center italic opacity-60">This day hasn't happened yet.</p>
       ) : (
         <form className="mt-3" onSubmit={(e) => e.preventDefault()}>
           <PromptFields items={items} rows={3} onAnswer={update} />
-          <p className="mt-4 text-center text-sm text-base-content/60">
-            Saved automatically on this device. <a className="link link-secondary" href="#/settings">Change prompts</a>
+          <p className="mt-6 text-center text-sm italic opacity-60">
+            Saved automatically on this device. <a className="link text-rose" href="#/settings">Change prompts</a>
           </p>
         </form>
       )}
 
       {!future && isSunday(date) && (
         <a
-          className="week-card card mt-5 border-2 border-secondary/40 bg-linear-to-r from-secondary/20 to-primary/25 shadow-md"
+          className="week-card card mt-6 border border-rose/40 bg-base-100"
           href={`#/week/${date}`}
         >
           <span className="card-body flex-row items-center gap-3 p-4">
-            <span className="text-3xl" aria-hidden="true">🌟</span>
+            <span className="text-3xl text-rose" aria-hidden="true">✿</span>
             <span className="grow">
-              <strong>Weekly review</strong>
-              <span className="block text-sm text-base-content/70">
+              <strong className="font-semibold">Weekly review</strong>
+              <span className="block text-sm italic opacity-70">
                 {hasWeekReview ? 'Written. Tap to read or edit.' : 'Sunday is a good day to look back on the week.'}
               </span>
             </span>
@@ -73,11 +87,11 @@ export default function DayView({ date, entry, hasWeekReview, currentPrompts, on
       )}
 
       <nav className="mt-4 flex justify-between">
-        <a className="btn btn-ghost btn-sm text-secondary-content" href={`#/day/${prev}`}>
+        <a className="btn btn-ghost btn-sm" href={`#/day/${prev}`}>
           ‹ Previous day
         </a>
         {next <= today && (
-          <a className="btn btn-ghost btn-sm text-secondary-content" href={`#/day/${next}`}>
+          <a className="btn btn-ghost btn-sm" href={`#/day/${next}`}>
             Next day ›
           </a>
         )}
