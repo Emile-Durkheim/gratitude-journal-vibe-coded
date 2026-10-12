@@ -13,7 +13,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+      // Our own worker (src/sw.ts) so it can show the daily reminder; it keeps the same precache.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Gratitude Journal',
