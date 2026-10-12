@@ -107,7 +107,11 @@ function DayCell({ dateKey, today, entries, weekDone, promptCount }: {
   const inner = (
     <>
       <span className={`italic leading-none ${isToday ? 'font-semibold text-rose' : 'opacity-70'}`}>{day}</span>
-      {entry && <Flower size={30} {...petalsFor(entry.items, promptCount)} day={dateKey} rotate={day * 23} />}
+      {entry && (
+        <span className="sway small" style={{ animationDuration: `${4 + (day % 5) * 0.4}s`, animationDelay: `${-day * 0.7}s` }}>
+          <Flower size={30} {...petalsFor(entry.items, promptCount)} day={dateKey} rotate={day * 23} />
+        </span>
+      )}
       {weekDone && <span className="week-mark absolute bottom-0.5 right-1 text-[0.65rem] text-rose" aria-hidden="true">✿</span>}
     </>
   )

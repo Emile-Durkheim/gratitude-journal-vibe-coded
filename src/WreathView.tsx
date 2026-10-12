@@ -213,12 +213,15 @@ function Slot({ index, dateKey, x, y, angle, today, entries, promptCount }: {
   )
   return (
     <g transform={`translate(${x} ${y})`}>
-            {future ? (
+      {future ? (
         <g aria-label={label}>{body}</g>
       ) : (
         <a href={`#/day/${dateKey}`} aria-label={label} className={`slot ${entry ? 'pressed' : 'empty'}`}>
           <circle r="31" fill="transparent" />
-          {body}
+          {/* each flower sways on an imagined stem, at its own pace */}
+          <g className="sway-svg" style={{ animationDuration: `${4.4 + ((index * 3) % 4) * 0.5}s`, animationDelay: `${-index * 1.1}s` }}>
+            {body}
+          </g>
         </a>
       )}
     </g>

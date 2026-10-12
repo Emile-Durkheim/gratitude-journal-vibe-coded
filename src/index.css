@@ -133,6 +133,7 @@ body {
   50% { transform: rotate(5deg); }
 }
 .sway.small { animation-name: sway-small; }
+.sway-svg { transform-box: view-box; transform-origin: 0 26px; animation: sway-small 5s ease-in-out infinite; }
 .live-flower.complete { filter: drop-shadow(0 0 6px oklch(85% 0.12 85 / 0.9)); animation: pressed 0.9s cubic-bezier(0.34, 1.6, 0.5, 1), sway 5s ease-in-out 0.9s infinite; }
 .live-flower.complete .flower-heart { fill: #f0c75a; }
 @keyframes pressed {
