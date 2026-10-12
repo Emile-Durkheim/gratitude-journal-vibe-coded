@@ -1,4 +1,4 @@
-import { Flower, LeafG, flowerColor, petalsFor } from './flower'
+import { Flower, LeafG, petalsFor } from './flower'
 import { formatLong, fromKey, todayKey, weekDays, weekEnd } from './dates'
 import type { Entries } from './storage'
 
@@ -27,21 +27,18 @@ export default function WeekStrip({ date, entries, promptCount, petals, filled, 
         const entry = entries[d]
         const weekday = fromKey(d).toLocaleDateString(undefined, { weekday: 'narrow' })
         const flower = selected ? (
-          <Flower
-            size={58}
-            petals={petals}
-            filled={filled}
-            color={flowerColor(d)}
-            svgClass={`live-flower sway ${complete ? 'complete' : ''}`}
-          />
+          // the sway and the "pressed" glow live on an HTML wrapper so they stay smooth while scrolling
+          <span className={`live-flower sway ${complete ? 'complete' : ''}`}>
+            <Flower size={58} petals={petals} filled={filled} day={d} />
+          </span>
         ) : entry ? (
-          <Flower size={30} {...petalsFor(entry.items, promptCount)} color={flowerColor(d)} />
+          <Flower size={30} {...petalsFor(entry.items, promptCount)} day={d} />
         ) : future ? (
           <svg width="30" height="30" viewBox="-15 -15 30 30" aria-hidden="true">
-            <circle className="bud" r="3.5" fill="#e6dcc6" stroke="#cbbfae" />
+            <circle r="3.5" fill="#e6dcc6" stroke="#cbbfae" />
           </svg>
         ) : d === today ? (
-          <Flower size={30} petals={promptCount} filled={0} color={flowerColor(d)} />
+          <Flower size={30} petals={promptCount} filled={0} day={d} />
         ) : (
           <svg width="30" height="30" viewBox="-15 -15 30 30" aria-hidden="true">
             <g transform="rotate(-20) scale(.9)">
@@ -51,7 +48,7 @@ export default function WeekStrip({ date, entries, promptCount, petals, filled, 
         )
         const body = (
           <>
-            <span className="text-[0.65rem] uppercase tracking-[0.15em] opacity-60">{weekday}</span>
+            <span className="strip-weekday text-[0.65rem] uppercase tracking-[0.15em] opacity-60">{weekday}</span>
             <span className="grid place-items-center">{flower}</span>
             <span className={`text-sm italic leading-none ${d === today ? 'font-semibold text-rose' : 'opacity-60'}`}>
               {Number(d.slice(8))}

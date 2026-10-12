@@ -31,15 +31,23 @@ export function slideDirection(from: Route, to: Route): 'forward' | 'back' | nul
   return null
 }
 
+/**
+ * Hash routing with app-like history. Moving between day pages replaces the history entry, and a
+ * link back to the page you came from steps back instead of stacking, so the system back button
+ * returns to the overview rather than through every day you visited.
+ */
 export function useHashRoute(): Route {
   const [route, setRoute] = useState(() => parseHash(window.location.hash))
   useEffect(() => {
-    let current = parseHash(window.location.hash)
+    const norm = (hash: string) => hash || '#/'
+    let currentHash = norm(window.location.hash)
+    let current = parseHash(currentHash)
     let latest = 0
-    const onChange = () => {
-      const next = parseHash(window.location.hash)
+
+    const show = (next: Route) => {
       const direction = slideDirection(current, next)
       current = next
+      currentHash = norm(window.location.hash)
       const apply = () => {
         setRoute(next)
         window.scrollTo(0, 0)
@@ -56,8 +64,41 @@ export function useHashRoute(): Route {
         if (id === latest) delete root.dataset.slide
       })
     }
-    window.addEventListener('hashchange', onChange)
-    return () => window.removeEventListener('hashchange', onChange)
+
+    // Back/forward, links outside the app's own, and typed URLs.
+    const onHistory = () => {
+      if (norm(window.location.hash) === currentHash) return
+      show(parseHash(window.location.hash))
+    }
+
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = (e.target as Element).closest?.('a[href^="#/"]')
+      if (!a) return
+      const href = a.getAttribute('href')!
+      e.preventDefault()
+      if (href === currentHash) return
+      const next = parseHash(href)
+      const state = history.state as { prev?: string } | null
+      if (state?.prev === href) {
+        history.back()
+      } else if (current.name === 'day' && next.name === 'day') {
+        history.replaceState(state, '', href)
+        show(next)
+      } else {
+        history.pushState({ prev: currentHash }, '', href)
+        show(next)
+      }
+    }
+
+    window.addEventListener('hashchange', onHistory)
+    window.addEventListener('popstate', onHistory)
+    document.addEventListener('click', onClick)
+    return () => {
+      window.removeEventListener('hashchange', onHistory)
+      window.removeEventListener('popstate', onHistory)
+      document.removeEventListener('click', onClick)
+    }
   }, [])
   return route
 }

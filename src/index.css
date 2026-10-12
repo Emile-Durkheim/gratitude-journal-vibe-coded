@@ -108,44 +108,31 @@ body {
 }
 
 /* ---------- Motion ---------- */
+/* Petals spring open via Framer Motion (src/flower.tsx). Everything that keeps moving animates only
+   transform or opacity on an HTML element, so the compositor keeps it running while the page scrolls. */
 
-/* A petal unfolds from the flower's centre when it is coloured in. */
-.petal { transform-origin: 0 0; transform-box: view-box; }
-.petal.on { animation: petal-open 0.7s cubic-bezier(0.34, 1.45, 0.55, 1) both; }
-/* On the wreath, flowers open one after another, petal by petal. */
-.stagger .petal.on { animation-delay: calc(var(--d, 0ms) + var(--i) * 70ms); }
 .leaf { transform-origin: 0 0; transform-box: view-box; animation: leaf-in 0.8s ease-out both; animation-delay: var(--d, 0ms); }
-.bud { transform-origin: center; transform-box: fill-box; animation: bud 3.2s ease-in-out infinite; }
-.today-ring { transform-origin: 0 0; transform-box: view-box; animation: ring-turn 40s linear infinite; }
-
-@keyframes petal-open {
-  from { transform: scale(0.15) rotate(-25deg); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
 @keyframes leaf-in {
   from { transform: scale(0.3) rotate(-30deg); opacity: 0; }
   to { transform: none; opacity: 1; }
 }
-@keyframes bud {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.25); }
-}
+
+.today-ring > svg { animation: ring-turn 40s linear infinite; will-change: transform; }
 @keyframes ring-turn { to { transform: rotate(360deg); } }
 
 /* The open day's flower sways a little on the page, as if just picked. */
-.sway { transform-origin: 50% 80%; animation: sway 5s ease-in-out infinite; }
+.live-flower { display: inline-block; line-height: 0; }
+.sway { transform-origin: 50% 85%; animation: sway 5s ease-in-out infinite; will-change: transform; }
 @keyframes sway {
   0%, 100% { transform: rotate(-3deg); }
   50% { transform: rotate(3deg); }
 }
-.live-flower .flower-heart { transition: fill 0.4s; }
-.live-flower.complete { filter: drop-shadow(0 0 6px oklch(85% 0.12 85 / 0.9)); }
+.live-flower.complete { filter: drop-shadow(0 0 6px oklch(85% 0.12 85 / 0.9)); animation: pressed 0.9s cubic-bezier(0.34, 1.6, 0.5, 1), sway 5s ease-in-out 0.9s infinite; }
 .live-flower.complete .flower-heart { fill: #f0c75a; }
-.live-flower.complete > g > g { animation: pressed 0.9s cubic-bezier(0.34, 1.6, 0.5, 1); transform-origin: 0 0; transform-box: view-box; }
 @keyframes pressed {
   0% { transform: scale(1) rotate(0); }
-  40% { transform: scale(1.3) rotate(25deg); }
-  100% { transform: scale(1) rotate(0); }
+  40% { transform: scale(1.3) rotate(20deg); }
+  100% { transform: scale(1) rotate(-3deg); }
 }
 
 .pressed-line { animation: ink-in 1.2s ease-out both; }
@@ -154,20 +141,13 @@ body {
   to { opacity: 1; transform: none; filter: none; }
 }
 
-/* Petals drifting down the page once a day is complete. */
-.petal-shower { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 30; }
-.petal-shower svg { position: absolute; top: -40px; animation-name: petal-fall; animation-timing-function: cubic-bezier(0.35, 0.1, 0.6, 1); animation-fill-mode: both; }
-@keyframes petal-fall {
-  0% { transform: translate(0, 0) rotate(0); opacity: 0; }
-  10% { opacity: 1; }
-  50% { transform: translate(calc(var(--drift) * -0.5), 55vh) rotate(calc(var(--spin) * 0.5)); }
-  85% { opacity: 0.9; }
-  100% { transform: translate(var(--drift), 110vh) rotate(var(--spin)); opacity: 0; }
-}
+/* The Three.js petal shower once a day is complete. */
+.petal-shower { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 30; }
 
 /* ---------- Day page header ---------- */
 
-/* The week strip with the open day's flower stays at the top while writing. */
+/* The week strip with the open day's flower stays at the top while writing. When the on-screen
+   keyboard shifts the visible area, DayView moves it down by --kb-shift so it stays in view. */
 .day-sticky {
   position: sticky;
   top: 0;
@@ -175,23 +155,26 @@ body {
   margin: 0 -1.25rem;
   padding: max(0.25rem, env(safe-area-inset-top)) 1.25rem 0.35rem;
   background-color: var(--color-paper);
-  background-image: radial-gradient(rgba(120, 90, 40, 0.05) 1px, transparent 1px);
-  background-size: 5px 5px;
-  background-attachment: fixed;
   border-bottom: 1px solid oklch(42% 0.03 140 / 0.15);
+  transform: translateY(var(--kb-shift, 0px));
 }
 .strip-day { flex: 1 1 0; min-width: 0; transition: background-color 0.2s; }
 .strip-day.selected { flex-grow: 1.8; background: oklch(58% 0.11 5 / 0.07); }
 a.strip-day:hover { background: oklch(58% 0.11 5 / 0.07); }
+/* With the keyboard up, space is short: a slimmer strip, without the weekday letters. */
+.day-sticky.compact { padding-top: 0.15rem; padding-bottom: 0.15rem; }
+.day-sticky.compact .strip-weekday { display: none; }
+.day-sticky.compact .live-flower { scale: 0.7; margin: -9px 0; }
 
 /* ---------- Page transitions ---------- */
 
 ::view-transition-old(root),
-::view-transition-new(root) { animation-duration: 0.32s; }
-html[data-slide='forward']::view-transition-old(root) { animation: 0.36s cubic-bezier(0.3, 0, 0.2, 1) both slide-to-left; }
-html[data-slide='forward']::view-transition-new(root) { animation: 0.36s cubic-bezier(0.3, 0, 0.2, 1) both slide-from-right; }
-html[data-slide='back']::view-transition-old(root) { animation: 0.36s cubic-bezier(0.3, 0, 0.2, 1) both slide-to-right; }
-html[data-slide='back']::view-transition-new(root) { animation: 0.36s cubic-bezier(0.3, 0, 0.2, 1) both slide-from-left; }
+::view-transition-new(root) { animation-duration: 0.18s; }
+html[data-slide] { --slide: 0.22s cubic-bezier(0.25, 0.8, 0.25, 1) both; }
+html[data-slide='forward']::view-transition-old(root) { animation: var(--slide) slide-to-left; }
+html[data-slide='forward']::view-transition-new(root) { animation: var(--slide) slide-from-right; }
+html[data-slide='back']::view-transition-old(root) { animation: var(--slide) slide-to-right; }
+html[data-slide='back']::view-transition-new(root) { animation: var(--slide) slide-from-left; }
 @keyframes slide-from-right { from { transform: translateX(100%); } }
 @keyframes slide-to-left { to { transform: translateX(-30%); opacity: 0.4; } }
 @keyframes slide-from-left { from { transform: translateX(-30%); opacity: 0.4; } }

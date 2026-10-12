@@ -4,6 +4,7 @@ import { flowerColor } from './flower'
 import PromptFields from './PromptFields'
 import TopBar, { BackLink } from './TopBar'
 import WeekStrip from './WeekStrip'
+import { useKeyboardShift } from './useKeyboardShift'
 import { formatLong, fromKey, isSunday, toKey, todayKey } from './dates'
 import type { Entries, Entry, Item } from './storage'
 
@@ -34,15 +35,15 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
   const filled = items.filter((i) => i.answer.trim()).length
   const complete = filled === items.length
 
+  const sticky = useRef<HTMLDivElement>(null)
+  useKeyboardShift(sticky)
+
   // Celebrate the moment the last petal goes in, not every time a finished day is opened.
   const [celebrating, setCelebrating] = useState(false)
   const wasComplete = useRef(complete)
   useEffect(() => {
     if (complete && !wasComplete.current) {
       setCelebrating(true)
-      const t = setTimeout(() => setCelebrating(false), 5000)
-      wasComplete.current = complete
-      return () => clearTimeout(t)
     }
     wasComplete.current = complete
   }, [complete])
@@ -61,7 +62,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
         title={date === today ? 'Today' : 'A pressed day'}
         start={<BackLink href="#/" label="Back to the wreath" onClick={onBack} />}
       />
-      <div className="day-sticky">
+      <div ref={sticky} className="day-sticky">
         <WeekStrip
           date={date}
           entries={entries}
@@ -87,7 +88,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
             ))}
         </span>
       </div>
-      {celebrating && <Celebration color={flowerColor(date)} />}
+      {celebrating && <Celebration color={flowerColor(date)} onDone={() => setCelebrating(false)} />}
 
       {future ? (
         <p className="empty my-12 text-center italic opacity-60">This day hasn't happened yet.</p>

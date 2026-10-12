@@ -1,6 +1,6 @@
 import type React from 'react'
 import { useInstall } from './install'
-import { FlowerG, LeafG, flowerColor, petalsFor } from './flower'
+import { FlowerG, LeafG, petalsFor } from './flower'
 import TopBar, { CalendarIcon, GearIcon, IconLink } from './TopBar'
 import { formatLong, formatWeekRange, fromKey, isSunday, toKey, todayKey, weekDays, weekEnd } from './dates'
 import type { Entries } from './storage'
@@ -101,6 +101,7 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
             <path d={`M${C + 52} ${C - 70} v30 l7 -6 l7 6 v-30z`} fill="#b5576c" fillOpacity=".75" aria-label="Weekly review written" />
           )}
         </svg>
+        {days.includes(today) && <TodayRing index={days.indexOf(today)} />}
         <div className="pointer-events-none absolute inset-0 grid place-content-center text-center">
           <span className="text-[0.7rem] uppercase tracking-[0.25em] opacity-60">{isThisWeek ? 'This week' : 'Week of'}</span>
           <span className="week-range text-xl italic leading-tight">{formatWeekRange(sunday)}</span>
@@ -157,6 +158,26 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
   )
 }
 
+/**
+ * The dashed ring round today, turning slowly. It sits over the wreath as its own element rather
+ * than inside the SVG, so the browser can keep it turning on the compositor while the page scrolls.
+ */
+function TodayRing({ index }: { index: number }) {
+  const rad = ((index / 7) * 360 - 90) * (Math.PI / 180)
+  const pct = (v: number) => `${(v / SIZE) * 100}%`
+  return (
+    <div
+      className="today-ring pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: pct(C + R * Math.cos(rad)), top: pct(C + R * Math.sin(rad)), width: pct(68) }}
+      aria-hidden="true"
+    >
+      <svg viewBox="-34 -34 68 68" className="block w-full">
+        <circle r="33" fill="none" stroke="#b5576c" strokeWidth="1.4" strokeDasharray="4 3" />
+      </svg>
+    </div>
+  )
+}
+
 function Slot({ index, dateKey, x, y, angle, today, entries, promptCount }: {
   index: number
   dateKey: string
@@ -174,14 +195,14 @@ function Slot({ index, dateKey, x, y, angle, today, entries, promptCount }: {
   // Flowers open one after another around the wreath, Monday first.
   const delay = { '--d': `${index * 110}ms` } as React.CSSProperties
   const body = entry ? (
-    <g transform="scale(1.6)" style={delay}>
-      <FlowerG {...petalsFor(entry.items, promptCount)} color={flowerColor(dateKey)} className="stagger" />
+    <g transform="scale(1.6)">
+      <FlowerG {...petalsFor(entry.items, promptCount)} day={dateKey} delay={index * 0.11} />
     </g>
   ) : future ? (
-    <circle className="bud" r="4" fill="#e6dcc6" stroke="#cbbfae" />
+    <circle r="4" fill="#e6dcc6" stroke="#cbbfae" />
   ) : isToday ? (
     <g transform="scale(1.6)">
-      <FlowerG petals={promptCount} filled={0} color={flowerColor(dateKey)} />
+      <FlowerG petals={promptCount} filled={0} day={dateKey} />
     </g>
   ) : (
     <g transform={`rotate(${angle + 90}) scale(1.1)`}>
@@ -192,8 +213,7 @@ function Slot({ index, dateKey, x, y, angle, today, entries, promptCount }: {
   )
   return (
     <g transform={`translate(${x} ${y})`}>
-      {isToday && <circle className="today-ring" r="33" fill="none" stroke="#b5576c" strokeWidth="1.4" strokeDasharray="4 3" />}
-      {future ? (
+            {future ? (
         <g aria-label={label}>{body}</g>
       ) : (
         <a href={`#/day/${dateKey}`} aria-label={label} className={`slot ${entry ? 'pressed' : 'empty'}`}>

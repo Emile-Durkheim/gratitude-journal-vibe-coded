@@ -1,4 +1,4 @@
-import { Flower, flowerColor, petalsFor } from './flower'
+import { Flower, petalsFor } from './flower'
 import { formatLong, formatMonth, monthGrid, todayKey, weekdayLabels } from './dates'
 import type { Entries } from './storage'
 import TopBar, { GearIcon, IconLink, WreathIcon } from './TopBar'
@@ -107,7 +107,7 @@ function DayCell({ dateKey, today, entries, weekDone, promptCount }: {
   const inner = (
     <>
       <span className={`italic leading-none ${isToday ? 'font-semibold text-rose' : 'opacity-70'}`}>{day}</span>
-      {entry && <Flower size={30} {...petalsFor(entry.items, promptCount)} color={flowerColor(dateKey)} rotate={day * 23} />}
+      {entry && <Flower size={30} {...petalsFor(entry.items, promptCount)} day={dateKey} rotate={day * 23} />}
       {weekDone && <span className="week-mark absolute bottom-0.5 right-1 text-[0.65rem] text-rose" aria-hidden="true">✿</span>}
     </>
   )
