@@ -9,6 +9,8 @@ export type Entry = {
   /** Prompts are stored with the answers, so editing the prompt list never relabels old days. */
   items: Item[]
   updatedAt: number
+  /** When the day was stamped as pressed with the stamp button. Saving itself is automatic. */
+  stampedAt?: number
 }
 
 export type Entries = Record<string, Entry>
@@ -49,7 +51,8 @@ function isEntry(x: unknown): x is Entry {
     isValidKey(e.date) &&
     Array.isArray(e.items) &&
     e.items.every((i) => i && typeof i.prompt === 'string' && typeof i.answer === 'string') &&
-    typeof e.updatedAt === 'number'
+    typeof e.updatedAt === 'number' &&
+    (e.stampedAt === undefined || typeof e.stampedAt === 'number')
   )
 }
 
@@ -120,9 +123,10 @@ export function hasContent(items: Item[]): boolean {
   return items.some((i) => i.answer.trim() !== '')
 }
 
-/** The entry to store for this day, or undefined if it's empty. */
-export function makeEntry(date: string, items: Item[], now = Date.now()): Entry | undefined {
-  return hasContent(items) ? { date, items, updatedAt: now } : undefined
+/** The entry to store for this day, or undefined if it's empty. A stamp stays with the day while it has content. */
+export function makeEntry(date: string, items: Item[], now = Date.now(), stampedAt?: number): Entry | undefined {
+  if (!hasContent(items)) return undefined
+  return stampedAt === undefined ? { date, items, updatedAt: now } : { date, items, updatedAt: now, stampedAt }
 }
 
 export function toExport(entries: Entries, settings: Settings, weeks: Entries = {}): ExportFile {

@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import Celebration from './Celebration'
 import { flowerColor } from './flower'
+import PetalDrift from './PetalDrift'
 import PromptFields from './PromptFields'
+import StampButton from './StampButton'
 import TopBar, { BackLink } from './TopBar'
 import WeekStrip from './WeekStrip'
 import { useKeyboardShift } from './useKeyboardShift'
@@ -15,10 +17,11 @@ type Props = {
   hasWeekReview: boolean
   currentPrompts: string[]
   onChange: (date: string, items: Item[]) => void
+  onStamp: (date: string, items: Item[]) => void
   onBack: () => void
 }
 
-export default function DayView({ date, entry, entries, hasWeekReview, currentPrompts, onChange, onBack }: Props) {
+export default function DayView({ date, entry, entries, hasWeekReview, currentPrompts, onChange, onStamp, onBack }: Props) {
   const today = todayKey()
   const future = date > today
   // A day that already has an entry keeps the prompts it was written with.
@@ -38,15 +41,14 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
   const sticky = useRef<HTMLDivElement>(null)
   useKeyboardShift(sticky)
 
-  // Celebrate the moment the last petal goes in, not every time a finished day is opened.
+  // Stamping is the moment to celebrate; it stays stamped while the day has answers.
+  const stamped = !!entry?.stampedAt && filled > 0
   const [celebrating, setCelebrating] = useState(false)
-  const wasComplete = useRef(complete)
-  useEffect(() => {
-    if (complete && !wasComplete.current) {
-      setCelebrating(true)
-    }
-    wasComplete.current = complete
-  }, [complete])
+  const stampDay = () => {
+    onStamp(date, items)
+    setCelebrating(true)
+    navigator.vibrate?.(25)
+  }
 
   const neighbour = (delta: number) => {
     const d = fromKey(date)
@@ -69,7 +71,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
           promptCount={currentPrompts.length}
           petals={items.length}
           filled={future ? 0 : filled}
-          complete={!future && complete}
+          complete={!future && stamped}
         />
       </div>
       <div className="page-head mt-3 mb-5 flex items-center gap-4">
@@ -77,9 +79,13 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
         <span className="grow">
           <span className="block text-lg italic leading-tight opacity-80">{formatLong(date)}</span>
           {!future &&
-            (complete ? (
+            (stamped ? (
               <span key="done" className="petal-count pressed-line block text-sm italic text-rose">
-                ✿ Every petal is in. This day is pressed.
+                ✿ Stamped. This day is pressed.
+              </span>
+            ) : complete ? (
+              <span key="full" className="petal-count block text-sm italic text-rose">
+                Every petal is in. Stamp it below.
               </span>
             ) : (
               <span className="petal-count block text-sm italic opacity-60">
@@ -88,6 +94,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
             ))}
         </span>
       </div>
+      {stamped && <PetalDrift color={flowerColor(date)} />}
       {celebrating && <Celebration color={flowerColor(date)} onDone={() => setCelebrating(false)} />}
 
       {future ? (
@@ -95,7 +102,10 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
       ) : (
         <form className="mt-3" onSubmit={(e) => e.preventDefault()}>
           <PromptFields items={items} rows={3} onAnswer={update} />
-          <p className="mt-6 text-center text-sm italic opacity-60">
+          <div className="mt-8">
+            <StampButton filled={filled} total={items.length} stamped={stamped} onStamp={stampDay} />
+          </div>
+          <p className="mt-5 text-center text-sm italic opacity-60">
             Saved automatically on this device. <a className="link text-rose" href="#/settings">Change prompts</a>
           </p>
         </form>

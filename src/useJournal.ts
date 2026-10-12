@@ -70,23 +70,37 @@ export function useJournal() {
   }, [flush])
 
   const edit = useCallback(
-    (kind: 'day' | 'week', date: string, items: Item[]) => {
-      const entry = makeEntry(date, items)
+    (kind: 'day' | 'week', date: string, items: Item[], stampedAt?: number) => {
+      const entry = makeEntry(date, items, Date.now(), stampedAt)
       const apply = (prev: Entries) => {
         const next = { ...prev }
         if (entry) next[date] = entry
         else delete next[date]
         return next
       }
-      if (kind === 'day') setEntries(apply)
-      else setWeeks(apply)
+      // Keep the ref current right away, so an edit straight after a stamp keeps the stamp.
+      if (kind === 'day') {
+        entriesRef.current = apply(entriesRef.current)
+        setEntries(apply)
+      } else setWeeks(apply)
       pending.current.set(`${kind}:${date}`, { kind, date, entry })
       window.clearTimeout(timer.current)
       timer.current = window.setTimeout(flush, SAVE_DELAY_MS)
     },
     [flush],
   )
-  const setItems = useCallback((date: string, items: Item[]) => edit('day', date, items), [edit])
+  const setItems = useCallback(
+    (date: string, items: Item[]) => edit('day', date, items, entriesRef.current[date]?.stampedAt),
+    [edit],
+  )
+  /** Stamp a day as pressed, then write it straight away. */
+  const stamp = useCallback(
+    (date: string, items: Item[]) => {
+      edit('day', date, items, Date.now())
+      flush()
+    },
+    [edit, flush],
+  )
   const setWeekItems = useCallback((sunday: string, items: Item[]) => edit('week', sunday, items), [edit])
 
   const updateSettings = useCallback(
@@ -120,5 +134,5 @@ export function useJournal() {
     requestPersistence().then(setPersist)
   }, [])
 
-  return { loaded, entries, weeks, settings, saveError, persist, setItems, setWeekItems, updateSettings, importFile, flush, retryPersist }
+  return { loaded, entries, weeks, settings, saveError, persist, setItems, stamp, setWeekItems, updateSettings, importFile, flush, retryPersist }
 }

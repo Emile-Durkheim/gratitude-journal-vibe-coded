@@ -36,6 +36,7 @@ export default function App() {
               hasWeekReview={!!journal.weeks[route.date]}
               currentPrompts={settings.prompts}
               onChange={journal.setItems}
+              onStamp={journal.stamp}
               onBack={() => {
                 const d = fromKey(route.date)
                 setMonth({ year: d.getFullYear(), month: d.getMonth() })

@@ -17,11 +17,14 @@ type Props = {
  * The open day's week along the top of the day page, so progress stays in view while writing.
  * The open day is the large flower; the others are small and lead to their own pages.
  */
+/** Each small flower sways at its own pace, so the row never moves in lockstep. */
+const swayStyle = (i: number) => ({ animationDuration: `${4.2 + ((i * 7) % 5) * 0.45}s`, animationDelay: `${-i * 0.9}s` })
+
 export default function WeekStrip({ date, entries, promptCount, petals, filled, complete }: Props) {
   const today = todayKey()
   return (
     <nav className="week-strip flex items-end" aria-label="This week">
-      {weekDays(weekEnd(date)).map((d) => {
+      {weekDays(weekEnd(date)).map((d, i) => {
         const selected = d === date
         const future = d > today
         const entry = entries[d]
@@ -32,19 +35,25 @@ export default function WeekStrip({ date, entries, promptCount, petals, filled, 
             <Flower size={58} petals={petals} filled={filled} day={d} />
           </span>
         ) : entry ? (
-          <Flower size={30} {...petalsFor(entry.items, promptCount)} day={d} />
+          <span className="sway small" style={swayStyle(i)}>
+            <Flower size={30} {...petalsFor(entry.items, promptCount)} day={d} />
+          </span>
         ) : future ? (
           <svg width="30" height="30" viewBox="-15 -15 30 30" aria-hidden="true">
             <circle r="3.5" fill="#e6dcc6" stroke="#cbbfae" />
           </svg>
         ) : d === today ? (
-          <Flower size={30} petals={promptCount} filled={0} day={d} />
+          <span className="sway small" style={swayStyle(i)}>
+            <Flower size={30} petals={promptCount} filled={0} day={d} />
+          </span>
         ) : (
-          <svg width="30" height="30" viewBox="-15 -15 30 30" aria-hidden="true">
-            <g transform="rotate(-20) scale(.9)">
-              <LeafG />
-            </g>
-          </svg>
+          <span className="sway small" style={swayStyle(i)}>
+            <svg width="30" height="30" viewBox="-15 -15 30 30" aria-hidden="true">
+              <g transform="rotate(-20) scale(.9)">
+                <LeafG />
+              </g>
+            </svg>
+          </span>
         )
         const body = (
           <>

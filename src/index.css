@@ -127,6 +127,12 @@ body {
   0%, 100% { transform: rotate(-3deg); }
   50% { transform: rotate(3deg); }
 }
+.sway.small { display: inline-block; line-height: 0; transform-origin: 50% 70%; }
+@keyframes sway-small {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+.sway.small { animation-name: sway-small; }
 .live-flower.complete { filter: drop-shadow(0 0 6px oklch(85% 0.12 85 / 0.9)); animation: pressed 0.9s cubic-bezier(0.34, 1.6, 0.5, 1), sway 5s ease-in-out 0.9s infinite; }
 .live-flower.complete .flower-heart { fill: #f0c75a; }
 @keyframes pressed {
@@ -166,6 +172,40 @@ a.strip-day:hover { background: oklch(58% 0.11 5 / 0.07); }
 .day-sticky.compact .strip-weekday { display: none; }
 .day-sticky.compact .live-flower { scale: 0.7; margin: -9px 0; }
 
+/* A stamped day keeps a few faint petals falling in its flower's colour. */
+.petal-drift { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; animation: drift-in 2s ease-out both; }
+.petal-drift > span { position: absolute; top: 0; animation-name: drift-fall, drift-sway; animation-timing-function: linear, ease-in-out; animation-iteration-count: infinite; will-change: transform; }
+.petal-drift svg { display: block; width: 100%; height: auto; opacity: 0.4; animation: drift-turn 7s ease-in-out infinite alternate; }
+@keyframes drift-in { from { opacity: 0; } }
+@keyframes drift-fall {
+  from { translate: 0 -30px; }
+  to { translate: 0 105vh; }
+}
+@keyframes drift-sway {
+  0%, 100% { transform: translateX(0) rotate(-20deg); }
+  50% { transform: translateX(var(--drift)) rotate(25deg); }
+}
+@keyframes drift-turn { to { transform: rotateY(65deg); } }
+
+/* ---------- Stamp button ---------- */
+
+.stamp { border-radius: 9999px; line-height: 0; -webkit-tap-highlight-color: transparent; }
+.stamp:disabled { cursor: default; }
+.stamp:focus-visible { outline: 2px solid var(--color-rose); outline-offset: 4px; }
+.stamp-track { fill: oklch(98.6% 0.014 88); stroke: oklch(58% 0.11 5 / 0.18); stroke-width: 3; }
+/* the ring fills slowly, like ink soaking into paper */
+.stamp-ring { fill: none; stroke: var(--color-rose); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1); }
+.stamp .seal-flower { fill: none; stroke: oklch(58% 0.11 5 / 0.35); stroke-width: 1.4; transition: stroke 0.4s; }
+.stamp:not(:disabled) .stamp-idle .seal-flower { stroke: oklch(58% 0.11 5 / 0.7); }
+.stamp.invite { animation: invite 2.4s ease-in-out infinite; }
+@keyframes invite {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 oklch(58% 0.11 5 / 0)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 8px oklch(58% 0.11 5 / 0.35)); }
+}
+.stamp .seal { fill: oklch(58% 0.11 5 / 0.88); }
+.stamp .seal-inner { fill: none; stroke: oklch(98% 0.01 85 / 0.7); stroke-width: 1; stroke-dasharray: 2 2; }
+.stamp.stamped .seal-flower { fill: oklch(98% 0.01 85 / 0.25); stroke: oklch(98% 0.01 85 / 0.95); }
+
 /* ---------- Page transitions ---------- */
 
 ::view-transition-old(root),
@@ -186,6 +226,6 @@ html[data-slide='back']::view-transition-new(root) { z-index: -1; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .petal-shower { display: none; }
+  .petal-shower, .petal-drift { display: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
