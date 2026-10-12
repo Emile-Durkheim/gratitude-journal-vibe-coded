@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { todayKey } from './dates'
 import InstallCard from './InstallCard'
 import PromptSection from './PromptSection'
+import ReminderCard from './ReminderCard'
 import TopBar, { BackLink } from './TopBar'
 import { DEFAULT_PROMPTS, DEFAULT_WEEKLY_PROMPTS, PROMPT_LIBRARY, WEEKLY_PROMPT_LIBRARY } from './prompts'
 import { parseExport, toExport, type Entries, type ExportFile, type PersistState, type Settings } from './storage'
@@ -60,6 +61,8 @@ export default function SettingsView(props: Props) {
       <TopBar title="Settings" start={<BackLink href="#/" label="Back to the wreath" />} />
 
       <InstallCard />
+
+      <ReminderCard />
 
       <PromptSection
         title="Your daily prompts"

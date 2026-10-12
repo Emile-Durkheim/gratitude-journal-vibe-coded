@@ -7,9 +7,12 @@ import '@fontsource/caveat/latin-400.css'
 import '@fontsource/caveat/latin-600.css'
 import App from './App.tsx'
 import './index.css'
+import { scheduleReminder } from './reminderClient'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
+
+scheduleReminder()
