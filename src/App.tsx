@@ -32,6 +32,7 @@ export default function App() {
               key={route.date}
               date={route.date}
               entry={journal.entries[route.date]}
+              entries={journal.entries}
               hasWeekReview={!!journal.weeks[route.date]}
               currentPrompts={settings.prompts}
               onChange={journal.setItems}

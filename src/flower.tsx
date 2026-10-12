@@ -1,3 +1,5 @@
+import type React from 'react'
+
 /** Pressed-flower drawings. A flower has one petal per prompt; answered prompts are coloured in. */
 
 const PALETTE = ['#d98f9f', '#e0a96d', '#a99ad6', '#c97a8d', '#7fb2c9', '#d8b65a', '#8fbf9a']
@@ -20,14 +22,14 @@ function petalPath(n: number): string {
   return `M0 -1 C${-w} -3 ${-w * 0.95} -17 0 -18.5 C${w * 0.95} -17 ${w} -3 0 -1Z`
 }
 
-type FlowerProps = { petals: number; filled: number; color: string; stem?: boolean }
+type FlowerProps = { petals: number; filled: number; color: string; stem?: boolean; className?: string }
 
 /** The flower as an SVG group centred on 0,0 (radius about 19), for use inside another SVG. */
-export function FlowerG({ petals, filled, color, stem = false }: FlowerProps) {
+export function FlowerG({ petals, filled, color, stem = false, className }: FlowerProps) {
   const n = Math.max(1, petals)
   const d = petalPath(n)
   return (
-    <g>
+    <g className={className}>
       {stem && (
         <>
           <path d="M0 3 Q3 14 -1 26" stroke="#7d9a72" strokeWidth="1.3" fill="none" />
@@ -39,27 +41,30 @@ export function FlowerG({ petals, filled, color, stem = false }: FlowerProps) {
         const on = i < filled
         return (
           <g key={i} transform={`rotate(${(360 * i) / n})`}>
-            <path
-              d={d}
-              fill={on ? color : 'none'}
-              fillOpacity={0.55}
-              stroke={on ? shade(color, 0.68) : '#c9bca7'}
-              strokeWidth={1.1}
-              strokeDasharray={on ? undefined : '2 1.6'}
-            />
-            {on && <path d="M0 -4 L0 -13" stroke={shade(color, 0.6)} strokeWidth={0.6} opacity={0.6} />}
+            {/* a petal unfolds from the centre when it is coloured in (see .petal in index.css) */}
+            <g className={on ? 'petal on' : 'petal'} style={{ '--i': i } as React.CSSProperties}>
+              <path
+                d={d}
+                fill={on ? color : 'none'}
+                fillOpacity={0.55}
+                stroke={on ? shade(color, 0.68) : '#c9bca7'}
+                strokeWidth={1.1}
+                strokeDasharray={on ? undefined : '2 1.6'}
+              />
+              {on && <path d="M0 -4 L0 -13" stroke={shade(color, 0.6)} strokeWidth={0.6} opacity={0.6} />}
+            </g>
           </g>
         )
       })}
-      <circle r={3.4} fill="#e3bd62" stroke="#b08a3a" strokeWidth={0.8} />
+      <circle className="flower-heart" r={3.4} fill="#e3bd62" stroke="#b08a3a" strokeWidth={0.8} />
     </g>
   )
 }
 
-export function Flower({ size, rotate = 0, ...props }: FlowerProps & { size: number; rotate?: number }) {
+export function Flower({ size, rotate = 0, svgClass, ...props }: FlowerProps & { size: number; rotate?: number; svgClass?: string }) {
   const h = props.stem ? size * 1.25 : size
   return (
-    <svg width={size} height={h} viewBox={`-21 -21 42 ${props.stem ? 52 : 42}`} aria-hidden="true">
+    <svg className={svgClass} width={size} height={h} viewBox={`-21 -21 42 ${props.stem ? 52 : 42}`} aria-hidden="true" overflow="visible">
       <g transform={`rotate(${rotate})`}>
         <FlowerG {...props} />
       </g>

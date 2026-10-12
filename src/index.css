@@ -106,3 +106,103 @@ body {
   background: linear-gradient(90deg, oklch(84% 0.03 80), transparent);
   pointer-events: none;
 }
+
+/* ---------- Motion ---------- */
+
+/* A petal unfolds from the flower's centre when it is coloured in. */
+.petal { transform-origin: 0 0; transform-box: view-box; }
+.petal.on { animation: petal-open 0.7s cubic-bezier(0.34, 1.45, 0.55, 1) both; }
+/* On the wreath, flowers open one after another, petal by petal. */
+.stagger .petal.on { animation-delay: calc(var(--d, 0ms) + var(--i) * 70ms); }
+.leaf { transform-origin: 0 0; transform-box: view-box; animation: leaf-in 0.8s ease-out both; animation-delay: var(--d, 0ms); }
+.bud { transform-origin: center; transform-box: fill-box; animation: bud 3.2s ease-in-out infinite; }
+.today-ring { transform-origin: 0 0; transform-box: view-box; animation: ring-turn 40s linear infinite; }
+
+@keyframes petal-open {
+  from { transform: scale(0.15) rotate(-25deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes leaf-in {
+  from { transform: scale(0.3) rotate(-30deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes bud {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+@keyframes ring-turn { to { transform: rotate(360deg); } }
+
+/* The open day's flower sways a little on the page, as if just picked. */
+.sway { transform-origin: 50% 80%; animation: sway 5s ease-in-out infinite; }
+@keyframes sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+.live-flower .flower-heart { transition: fill 0.4s; }
+.live-flower.complete { filter: drop-shadow(0 0 6px oklch(85% 0.12 85 / 0.9)); }
+.live-flower.complete .flower-heart { fill: #f0c75a; }
+.live-flower.complete > g > g { animation: pressed 0.9s cubic-bezier(0.34, 1.6, 0.5, 1); transform-origin: 0 0; transform-box: view-box; }
+@keyframes pressed {
+  0% { transform: scale(1) rotate(0); }
+  40% { transform: scale(1.3) rotate(25deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.pressed-line { animation: ink-in 1.2s ease-out both; }
+@keyframes ink-in {
+  from { opacity: 0; transform: translateY(4px); filter: blur(2px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+/* Petals drifting down the page once a day is complete. */
+.petal-shower { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 30; }
+.petal-shower svg { position: absolute; top: -40px; animation-name: petal-fall; animation-timing-function: cubic-bezier(0.35, 0.1, 0.6, 1); animation-fill-mode: both; }
+@keyframes petal-fall {
+  0% { transform: translate(0, 0) rotate(0); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate(calc(var(--drift) * -0.5), 55vh) rotate(calc(var(--spin) * 0.5)); }
+  85% { opacity: 0.9; }
+  100% { transform: translate(var(--drift), 110vh) rotate(var(--spin)); opacity: 0; }
+}
+
+/* ---------- Day page header ---------- */
+
+/* The week strip with the open day's flower stays at the top while writing. */
+.day-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: 0 -1.25rem;
+  padding: max(0.25rem, env(safe-area-inset-top)) 1.25rem 0.35rem;
+  background-color: var(--color-paper);
+  background-image: radial-gradient(rgba(120, 90, 40, 0.05) 1px, transparent 1px);
+  background-size: 5px 5px;
+  background-attachment: fixed;
+  border-bottom: 1px solid oklch(42% 0.03 140 / 0.15);
+}
+.strip-day { flex: 1 1 0; min-width: 0; transition: background-color 0.2s; }
+.strip-day.selected { flex-grow: 1.8; background: oklch(58% 0.11 5 / 0.07); }
+a.strip-day:hover { background: oklch(58% 0.11 5 / 0.07); }
+
+/* ---------- Page transitions ---------- */
+
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.32s; }
+html[data-slide='forward']::view-transition-old(root) { animation: 0.36s cubic-bezier(0.3, 0, 0.2, 1) both slide-to-left; }
+html[data-slide='forward']::view-transition-new(root) { animation: 0.36s cubic-bezier(0.3, 0, 0.2, 1) both slide-from-right; }
+html[data-slide='back']::view-transition-old(root) { animation: 0.36s cubic-bezier(0.3, 0, 0.2, 1) both slide-to-right; }
+html[data-slide='back']::view-transition-new(root) { animation: 0.36s cubic-bezier(0.3, 0, 0.2, 1) both slide-from-left; }
+@keyframes slide-from-right { from { transform: translateX(100%); } }
+@keyframes slide-to-left { to { transform: translateX(-30%); opacity: 0.4; } }
+@keyframes slide-from-left { from { transform: translateX(-30%); opacity: 0.4; } }
+@keyframes slide-to-right { to { transform: translateX(100%); } }
+/* the page coming in on top casts a soft shadow, like turning a leaf */
+html[data-slide='forward']::view-transition-new(root),
+html[data-slide='back']::view-transition-old(root) { box-shadow: -8px 0 24px rgba(60, 45, 20, 0.15); }
+html[data-slide='back']::view-transition-new(root) { z-index: -1; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .petal-shower { display: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}

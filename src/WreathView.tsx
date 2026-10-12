@@ -1,3 +1,4 @@
+import type React from 'react'
 import { useInstall } from './install'
 import { FlowerG, LeafG, flowerColor, petalsFor } from './flower'
 import TopBar, { CalendarIcon, GearIcon, IconLink } from './TopBar'
@@ -86,7 +87,7 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
             const ly = C + (R + 44) * Math.sin(rad)
             return (
               <g key={d} role="listitem">
-                <Slot dateKey={d} x={x} y={y} angle={a} today={today} entries={entries} promptCount={promptCount} />
+                <Slot index={i} dateKey={d} x={x} y={y} angle={a} today={today} entries={entries} promptCount={promptCount} />
                 <text x={lx} y={ly - 3} textAnchor="middle" className="fill-current text-[11px] uppercase tracking-[0.15em] opacity-70">
                   {SHORT[i]}
                 </text>
@@ -156,7 +157,8 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
   )
 }
 
-function Slot({ dateKey, x, y, angle, today, entries, promptCount }: {
+function Slot({ index, dateKey, x, y, angle, today, entries, promptCount }: {
+  index: number
   dateKey: string
   x: number
   y: number
@@ -169,24 +171,28 @@ function Slot({ dateKey, x, y, angle, today, entries, promptCount }: {
   const future = dateKey > today
   const isToday = dateKey === today
   const label = `${formatLong(dateKey)}${entry ? ', pressed' : future ? ', not yet' : ', quiet day'}`
+  // Flowers open one after another around the wreath, Monday first.
+  const delay = { '--d': `${index * 110}ms` } as React.CSSProperties
   const body = entry ? (
-    <g transform="scale(1.6)">
-      <FlowerG {...petalsFor(entry.items, promptCount)} color={flowerColor(dateKey)} />
+    <g transform="scale(1.6)" style={delay}>
+      <FlowerG {...petalsFor(entry.items, promptCount)} color={flowerColor(dateKey)} className="stagger" />
     </g>
   ) : future ? (
-    <circle r="4" fill="#e6dcc6" stroke="#cbbfae" />
+    <circle className="bud" r="4" fill="#e6dcc6" stroke="#cbbfae" />
   ) : isToday ? (
     <g transform="scale(1.6)">
       <FlowerG petals={promptCount} filled={0} color={flowerColor(dateKey)} />
     </g>
   ) : (
     <g transform={`rotate(${angle + 90}) scale(1.1)`}>
-      <LeafG />
+      <g className="leaf" style={delay}>
+        <LeafG />
+      </g>
     </g>
   )
   return (
     <g transform={`translate(${x} ${y})`}>
-      {isToday && <circle r="33" fill="none" stroke="#b5576c" strokeWidth="1.4" strokeDasharray="4 3" />}
+      {isToday && <circle className="today-ring" r="33" fill="none" stroke="#b5576c" strokeWidth="1.4" strokeDasharray="4 3" />}
       {future ? (
         <g aria-label={label}>{body}</g>
       ) : (
