@@ -1,5 +1,4 @@
-import { useRef, useState } from 'react'
-import Celebration from './Celebration'
+import { useEffect, useRef, useState } from 'react'
 import { flowerColor } from './flower'
 import PetalDrift from './PetalDrift'
 import PromptFields from './PromptFields'
@@ -43,12 +42,21 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
 
   // Stamping is the moment to celebrate; it stays stamped while the day has answers.
   const stamped = !!entry?.stampedAt && filled > 0
-  const [celebrating, setCelebrating] = useState(false)
+  // After a fresh stamp the seal lands first; only then does the page bloom and petals start to fall.
+  const [bloomed, setBloomed] = useState(stamped)
   const stampDay = () => {
     onStamp(date, items)
-    setCelebrating(true)
     navigator.vibrate?.(25)
+    window.setTimeout(() => setBloomed(true), 750)
   }
+  const blooming = stamped && bloomed
+  useEffect(() => {
+    if (!blooming) return
+    const root = document.documentElement
+    root.style.setProperty('--bloom', flowerColor(date))
+    root.classList.add('bloomed')
+    return () => root.classList.remove('bloomed')
+  }, [blooming, date])
 
   const neighbour = (delta: number) => {
     const d = fromKey(date)
@@ -94,8 +102,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
             ))}
         </span>
       </div>
-      {stamped && <PetalDrift color={flowerColor(date)} />}
-      {celebrating && <Celebration color={flowerColor(date)} onDone={() => setCelebrating(false)} />}
+      {blooming && <PetalDrift color={flowerColor(date)} />}
 
       {future ? (
         <p className="empty my-12 text-center italic opacity-60">This day hasn't happened yet.</p>

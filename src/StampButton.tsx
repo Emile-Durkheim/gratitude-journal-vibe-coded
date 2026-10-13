@@ -31,7 +31,7 @@ export default function StampButton({ filled, total, stamped, onStamp }: Props) 
         aria-label={stamped ? 'This day is pressed' : `Press this day (${filled} of ${total} answered)`}
         aria-pressed={stamped}
       >
-        <svg viewBox="-50 -50 100 100" width="104" height="104" aria-hidden="true">
+        <svg viewBox="-50 -50 100 100" width="104" height="104" overflow="visible" aria-hidden="true">
           <circle r={R} className="stamp-track" />
           <circle
             r={R}

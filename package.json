@@ -16,15 +16,13 @@
     "framer-motion": "^14.1.0",
     "idb-keyval": "^6.3.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "three": "^0.186.1"
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
-    "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
     "daisyui": "^5.7.47",
     "fake-indexeddb": "^6.2.5",
