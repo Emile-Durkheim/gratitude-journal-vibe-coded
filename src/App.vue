@@ -61,6 +61,7 @@ const backFromWeek = (sunday: string) => {
         <OnboardingView
           v-if="!onboarded || route.name === 'welcome'"
           :settings="settings"
+          :persist="persist"
           @settings-change="journal.updateSettings"
           @done="finishOnboarding"
         />
@@ -116,6 +117,7 @@ const backFromWeek = (sunday: string) => {
         />
         <WreathView
           v-else
+          :persist="persist"
           :sunday="wreathWeek"
           :entries="entries"
           :weeks="weeks"

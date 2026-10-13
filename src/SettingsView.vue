@@ -83,6 +83,8 @@ const lastExport = computed(() =>
       <template #start><BackLink href="#/" :label="t.backToWreath" /></template>
     </TopBar>
 
+    <InstallCard :persist="persist" />
+
     <div class="card mb-4 rounded-sm border border-base-300 bg-base-100">
       <div class="card-body gap-2 p-4">
         <h2 class="card-title text-xl font-normal italic">{{ t.language }}</h2>
@@ -102,8 +104,6 @@ const lastExport = computed(() =>
         </div>
       </div>
     </div>
-
-    <InstallCard />
 
     <ReminderCard />
 

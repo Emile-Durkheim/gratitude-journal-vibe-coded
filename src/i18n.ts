@@ -133,6 +133,10 @@ const en = {
   installTitle: 'Put it on your home screen',
   installBody: 'Installed, the journal opens like any other app, works offline, and your browser is less likely to clear its storage.',
   installButton: 'Install app',
+  riskTitle: "Your journal isn't safe yet",
+  riskBody:
+    'Until the journal is installed, your browser can delete your entries without asking: when space runs low, and in Safari after seven days without a visit. Install it to keep them, and export a backup now and then until you do.',
+  riskHow: 'How to install',
   iosStep1: 'Open this page in Safari.',
   iosStep2: 'Tap the Share button',
   iosStep3: 'Choose “Add to Home Screen”, then “Add”.',
@@ -299,6 +303,10 @@ const de: Strings = {
 
   installTitle: 'Auf den Home-Bildschirm legen',
   installBody: 'Installiert öffnet sich das Tagebuch wie jede andere App, funktioniert offline, und der Browser löscht seinen Speicher seltener.',
+  riskTitle: 'Dein Tagebuch ist noch nicht sicher',
+  riskBody:
+    'Solange das Tagebuch nicht installiert ist, kann der Browser deine Einträge ungefragt löschen: wenn der Speicher knapp wird, und in Safari nach sieben Tagen ohne Besuch. Installiere es, damit sie bleiben, und exportiere bis dahin ab und zu eine Sicherung.',
+  riskHow: 'So installierst du es',
   installButton: 'App installieren',
   iosStep1: 'Öffne diese Seite in Safari.',
   iosStep2: 'Tippe auf „Teilen“',

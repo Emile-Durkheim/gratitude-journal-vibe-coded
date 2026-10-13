@@ -260,6 +260,13 @@ html.bloomed .day-sticky { transition: none; }
 .stamp .seal-inner { fill: none; stroke: oklch(98% 0.01 85 / 0.7); stroke-width: 1; stroke-dasharray: 2 2; }
 .stamp.stamped .seal-flower { fill: oklch(98% 0.01 85 / 0.25); stroke: oklch(98% 0.01 85 / 0.95); }
 
+/* Until the journal is installed or its storage persisted, the install card warns, and stands out. */
+.install-card.at-risk {
+  border: 1.5px solid oklch(58% 0.11 5 / 0.75);
+  background: color-mix(in oklch, var(--color-base-100) 90%, var(--color-rose));
+  box-shadow: inset 4px 0 0 var(--color-rose);
+}
+
 /* ---------- First-run introduction ---------- */
 
 .welcome-flower { display: inline-block; }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import IconLink from './IconLink.vue'
+import InstallCard from './InstallCard.vue'
 import LeafG from './LeafG.vue'
 import TodayRing from './TodayRing.vue'
 import TopBar from './TopBar.vue'
@@ -10,7 +11,7 @@ import { useInstall } from './install'
 import { useT } from './useLang'
 import { C, R, SIZE } from './wreath'
 import { dateLocale, formatWeekRange, fromKey, isSunday, toKey, todayKey, weekDays, weekEnd } from './dates'
-import type { Entries } from './storage'
+import type { Entries, PersistState } from './storage'
 
 /** Home screen: this week as a wreath with one flower per day, Monday at the top going clockwise. */
 const props = defineProps<{
@@ -18,10 +19,13 @@ const props = defineProps<{
   entries: Entries
   weeks: Entries
   promptCount: number
+  persist: PersistState | null
 }>()
 const emit = defineEmits<{ weekChange: [sunday: string] }>()
 const t = useT()
 const install = useInstall()
+// Entries can still be lost: the warning goes to the top of the page instead of the quiet link at the foot.
+const atRisk = computed(() => install.value.kind !== 'installed' && props.persist !== 'persisted')
 
 const today = todayKey()
 const thisWeek = weekEnd(today)
@@ -77,6 +81,8 @@ const slots = computed(() =>
       </template>
     </TopBar>
 
+    <InstallCard v-if="atRisk" :persist="persist" />
+
     <div class="relative mx-auto w-full max-w-[340px]">
       <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" class="wreath block w-full" role="list" :aria-label="t.weekLabel(formatWeekRange(sunday))">
         <path v-for="(d, i) in vine" :key="`a${i}`" :d="d" fill="none" stroke="#a9bf9d" stroke-width="2" stroke-linecap="round" />
@@ -124,7 +130,7 @@ const slots = computed(() =>
       </a>
     </div>
 
-    <p v-if="install.kind !== 'installed'" class="mt-5 text-center text-sm italic opacity-70">
+    <p v-if="install.kind !== 'installed' && !atRisk" class="mt-5 text-center text-sm italic opacity-70">
       <button v-if="install.kind === 'prompt'" class="link text-rose" @click="install.install">{{ t.installApp }}</button>
       <a v-else class="link text-rose" href="#/settings">{{ t.addToHome }}</a>
     </p>
