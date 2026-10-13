@@ -1,0 +1,62 @@
+name: Deploy to VPS
+
+# Off until the repository variable VPS_DEPLOY_ENABLED is set to "true".
+# Setup and the full list of variables and secrets: ops/README.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vps-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.VPS_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: vps
+      url: ${{ vars.VPS_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          BASE_PATH: ${{ vars.VPS_BASE_PATH || '/' }}
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          HOST: ${{ vars.VPS_HOST }}
+        run: |
+          [ -n "$HOST" ] || { echo "::error::Set the VPS_HOST variable (ops/README.md)"; exit 1; }
+          [ -n "$SSH_KEY" ] && [ -n "$KNOWN_HOSTS" ] || { echo "::error::Set the VPS_SSH_KEY and VPS_KNOWN_HOSTS secrets (ops/README.md)"; exit 1; }
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/vps_deploy
+          chmod 600 ~/.ssh/vps_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          echo "SSH_KEY_FILE=$HOME/.ssh/vps_deploy" >> "$GITHUB_ENV"
+
+      - name: Upload and switch release
+        env:
+          SSH_PORT: ${{ vars.VPS_PORT || '22' }}
+          DEPLOY_ROOT: ${{ vars.VPS_DEPLOY_ROOT || '/var/www/gratitude-journal' }}
+          TARGET: ${{ vars.VPS_USER || 'deploy' }}@${{ vars.VPS_HOST }}
+        run: ops/deploy.sh "$TARGET" dist
+
+      - name: Check the site responds
+        if: vars.VPS_URL != ''
+        env:
+          URL: ${{ vars.VPS_URL }}
+        run: curl -fsS --retry 3 --retry-delay 2 -o /dev/null "$URL"
