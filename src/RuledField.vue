@@ -2,7 +2,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { useT } from './useLang'
 
-const props = defineProps<{ value: string; rows: number }>()
+const props = defineProps<{ value: string; rows: number; locked?: boolean }>()
 defineEmits<{ change: [value: string] }>()
 const t = useT()
 
@@ -24,7 +24,8 @@ watch(() => props.value, grow, { flush: 'post' })
     :style="{ minHeight: `calc(2.25rem * ${rows})` }"
     :value="value"
     :rows="rows"
-    :placeholder="t.writeHere"
+    :readonly="locked"
+    :placeholder="locked ? undefined : t.writeHere"
     @input="$emit('change', ($event.target as HTMLTextAreaElement).value)"
   />
 </template>

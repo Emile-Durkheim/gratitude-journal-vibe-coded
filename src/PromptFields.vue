@@ -3,7 +3,7 @@ import RuledField from './RuledField.vue'
 import type { Item } from './storage'
 
 /** Prompts in italic serif, answers handwritten on ruled lines. Shared by the day and week views. */
-defineProps<{ items: Item[]; rows: number }>()
+defineProps<{ items: Item[]; rows: number; locked?: boolean }>()
 defineEmits<{ answer: [index: number, answer: string] }>()
 </script>
 
@@ -14,7 +14,7 @@ defineEmits<{ answer: [index: number, answer: string] }>()
         <span class="flex-none text-sm not-italic text-rose" aria-hidden="true">✿ {{ i + 1 }}</span>
         <span>{{ item.prompt }}</span>
       </span>
-      <RuledField :value="item.answer" :rows="rows" @change="(v) => $emit('answer', i, v)" />
+      <RuledField :value="item.answer" :rows="rows" :locked="locked" @change="(v) => $emit('answer', i, v)" />
     </label>
   </div>
 </template>
