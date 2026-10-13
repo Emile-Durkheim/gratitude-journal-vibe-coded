@@ -24,7 +24,7 @@ const props = defineProps<{
 const emit = defineEmits<{ weekChange: [sunday: string] }>()
 const t = useT()
 const install = useInstall()
-// Entries can still be lost: the warning goes to the top of the page instead of the quiet link at the foot.
+// Entries can still be lost: the warning sits right below the wreath instead of the quiet link at the foot.
 const atRisk = computed(() => install.value.kind !== 'installed' && props.persist !== 'persisted')
 
 const today = todayKey()
@@ -81,8 +81,6 @@ const slots = computed(() =>
       </template>
     </TopBar>
 
-    <InstallCard v-if="atRisk" :persist="persist" />
-
     <div class="relative mx-auto w-full max-w-[340px]">
       <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" class="wreath block w-full" role="list" :aria-label="t.weekLabel(formatWeekRange(sunday))">
         <path v-for="(d, i) in vine" :key="`a${i}`" :d="d" fill="none" stroke="#a9bf9d" stroke-width="2" stroke-linecap="round" />
@@ -119,6 +117,8 @@ const slots = computed(() =>
       <button v-if="later <= thisWeek" class="btn btn-ghost btn-sm" @click="emit('weekChange', later)">{{ t.later }}</button>
       <span v-else class="w-20" />
     </nav>
+
+    <InstallCard v-if="atRisk" :persist="persist" />
 
     <div class="grid gap-3">
       <a class="btn btn-primary btn-lg w-full" :href="`#/day/${today}`">{{ entries[today] ? t.openToday : t.pressToday }}</a>

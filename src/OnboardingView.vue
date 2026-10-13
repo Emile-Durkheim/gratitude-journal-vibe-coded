@@ -56,8 +56,7 @@ const sample = (l: Lang) => STRINGS[l].quoted(defaultPrompts(l)[0])
         <div class="welcome-rule mx-auto mt-3" aria-hidden="true"><span>✿</span></div>
         <p class="mt-4 max-w-xs leading-relaxed">{{ t.obDoneBody }}</p>
         <div class="mt-8 grid w-full gap-3">
-          <button type="button" class="btn btn-primary btn-lg w-full" @click="emit('done', true)">{{ t.obStart }}</button>
-          <button type="button" class="btn btn-outline btn-lg w-full" @click="emit('done', false)">{{ t.obToWreath }}</button>
+          <button type="button" class="btn btn-primary btn-lg w-full" @click="emit('done', false)">{{ t.obToWreath }}</button>
         </div>
       </div>
 

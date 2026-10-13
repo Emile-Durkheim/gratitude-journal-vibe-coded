@@ -135,7 +135,7 @@ const en = {
   installButton: 'Install app',
   riskTitle: "Your journal isn't safe yet",
   riskBody:
-    'Until the journal is installed, your browser can delete your entries without asking: when space runs low, and in Safari after seven days without a visit. Install it to keep them, and export a backup now and then until you do.',
+    'Until the journal is installed, your browser can delete your entries without asking: when space runs low, and in Safari after seven days without a visit. Install it to keep them.',
   riskHow: 'How to install',
   iosStep1: 'Open this page in Safari.',
   iosStep2: 'Tap the Share button',
@@ -194,7 +194,6 @@ const en = {
   obInstalled: 'The journal is already installed on this device.',
   obDoneTitle: 'Your press is ready',
   obDoneBody: "Write a few lines whenever something good happens, then press the day with the stamp at the foot of the page.",
-  obStart: "Press today's flower",
   obToWreath: 'Go to the wreath',
   showIntro: 'Show the introduction again',
 
@@ -305,7 +304,7 @@ const de: Strings = {
   installBody: 'Installiert öffnet sich das Tagebuch wie jede andere App, funktioniert offline, und der Browser löscht seinen Speicher seltener.',
   riskTitle: 'Dein Tagebuch ist noch nicht sicher',
   riskBody:
-    'Solange das Tagebuch nicht installiert ist, kann der Browser deine Einträge ungefragt löschen: wenn der Speicher knapp wird, und in Safari nach sieben Tagen ohne Besuch. Installiere es, damit sie bleiben, und exportiere bis dahin ab und zu eine Sicherung.',
+    'Solange das Tagebuch nicht installiert ist, kann der Browser deine Einträge ungefragt löschen: wenn der Speicher knapp wird, und in Safari nach sieben Tagen ohne Besuch. Installiere es, damit sie bleiben.',
   riskHow: 'So installierst du es',
   installButton: 'App installieren',
   iosStep1: 'Öffne diese Seite in Safari.',
@@ -363,7 +362,6 @@ const de: Strings = {
   obInstalled: 'Das Tagebuch ist auf diesem Gerät schon installiert.',
   obDoneTitle: 'Deine Presse ist bereit',
   obDoneBody: 'Schreib ein paar Zeilen, wann immer dir etwas Gutes begegnet, und presse den Tag dann mit dem Stempel unten auf der Seite.',
-  obStart: 'Die heutige Blume pressen',
   obToWreath: 'Zum Kranz',
   showIntro: 'Die Einführung noch einmal zeigen',
 
