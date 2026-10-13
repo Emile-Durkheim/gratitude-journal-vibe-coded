@@ -7,6 +7,7 @@ export type Route =
   | { name: 'day'; date: string }
   | { name: 'week'; sunday: string }
   | { name: 'settings' }
+  | { name: 'prompts'; kind: 'daily' | 'weekly' }
 
 export function parseHash(hash: string): Route {
   const path = hash.replace(/^#/, '')
@@ -15,18 +16,20 @@ export function parseHash(hash: string): Route {
   const week = path.match(/^\/week\/(\d{4}-\d{2}-\d{2})$/)
   if (week && isValidKey(week[1])) return { name: 'week', sunday: weekEnd(week[1]) }
   if (path === '/settings') return { name: 'settings' }
+  if (path === '/prompts/daily' || path === '/prompts/weekly') return { name: 'prompts', kind: path === '/prompts/daily' ? 'daily' : 'weekly' }
   if (path === '/calendar') return { name: 'calendar' }
   return { name: 'wreath' }
 }
 
 /**
  * Which way the page slides: day pages come in from the right and leave to the right,
- * and moving between days slides with the calendar. Anything else crossfades.
+ * and moving between days slides with the calendar. The prompt library slides in over settings
+ * the same way. Anything else crossfades.
  */
 export function slideDirection(from: Route, to: Route): 'forward' | 'back' | null {
   if (from.name === 'day' && to.name === 'day') return to.date > from.date ? 'forward' : to.date < from.date ? 'back' : null
-  if (to.name === 'day') return 'forward'
-  if (from.name === 'day') return 'back'
+  if (to.name === 'day' || to.name === 'prompts') return 'forward'
+  if (from.name === 'day' || from.name === 'prompts') return 'back'
   return null
 }
 

@@ -38,7 +38,7 @@ const sway = computed(() => ({ animationDuration: `${4.4 + ((props.index * 3) % 
       <circle r="4" fill="#e6dcc6" stroke="#cbbfae" />
     </g>
     <a v-else :href="`#/day/${dateKey}`" :aria-label="label" :class="['slot', entry ? 'pressed' : 'empty']">
-      <circle r="31" fill="transparent" />
+      <circle class="hit" r="31" fill="transparent" />
       <g class="sway-svg" :style="sway">
         <g v-if="petals" transform="scale(1.6)">
           <FlowerG :petals="petals.petals" :filled="petals.filled" :day="dateKey" :delay="index * 0.11" />
