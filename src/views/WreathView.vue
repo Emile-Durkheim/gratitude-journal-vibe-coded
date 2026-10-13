@@ -118,8 +118,6 @@ const slots = computed(() =>
       <span v-else class="w-20" />
     </nav>
 
-    <InstallCard v-if="atRisk" :persist="persist" />
-
     <div class="grid gap-3">
       <a class="btn btn-primary btn-lg w-full" :href="`#/day/${today}`">{{ entries[today] ? t.openToday : t.pressToday }}</a>
       <a
@@ -129,6 +127,8 @@ const slots = computed(() =>
         {{ sundayToday && isThisWeek && !reviewed ? t.sundayReview : reviewed ? t.readReview : t.reviewThisWeek }}
       </a>
     </div>
+
+    <InstallCard class="mt-5" v-if="atRisk" :persist="persist" />
 
     <p v-if="install.kind !== 'installed' && !atRisk" class="mt-5 text-center text-sm italic opacity-70">
       <button v-if="install.kind === 'prompt'" class="link text-rose" @click="install.install">{{ t.installApp }}</button>
