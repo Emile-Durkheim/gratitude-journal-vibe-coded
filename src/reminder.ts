@@ -1,5 +1,6 @@
 import { createStore, get, set } from 'idb-keyval'
 import { toKey } from './dates'
+import { STRINGS, deviceLang, isLang } from './i18n'
 
 /**
  * The daily reminder. Kept apart from Settings so it stays with this device:
@@ -70,8 +71,10 @@ export async function remindIfDue(registration: ServiceWorkerRegistration, now =
   const wroteToday = (await get(`entry:${today}`, store)) !== undefined
   if (!shouldRemind(r, now, wroteToday)) return false
   await saveReminder({ ...r, lastShown: today })
-  await registration.showNotification('A moment for gratitude', {
-    body: 'A few lines about today, whenever you’re ready.',
+  const chosen = await get('language', store)
+  const t = STRINGS[isLang(chosen) ? chosen : deviceLang()]
+  await registration.showNotification(t.notificationTitle, {
+    body: t.notificationBody,
     icon: 'icons/icon-192.png',
     badge: 'icons/icon-192.png',
     tag: NOTIFICATION_TAG,

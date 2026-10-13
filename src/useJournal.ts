@@ -5,6 +5,7 @@ import {
   mergeEntries,
   requestPersistence,
   saveEntries,
+  saveLanguage,
   saveEntry,
   saveWeek,
   saveSettings,
@@ -15,6 +16,8 @@ import {
   type PersistState,
   type Settings,
 } from './storage'
+import { deviceLang, type Lang } from './i18n'
+import { translatePrompts } from './prompts'
 
 const SAVE_DELAY_MS = 400
 
@@ -25,6 +28,9 @@ export function useJournal() {
   const [settings, setSettingsState] = useState<Settings | null>(null)
   const [saveError, setSaveError] = useState(false)
   const [persist, setPersist] = useState<PersistState | null>(null)
+  // null follows the device's language
+  const [language, setLanguageState] = useState<Lang | null>(null)
+  const lang: Lang = language ?? deviceLang()
   // Days and weeks edited but not yet written, flushed after a short pause or when the page is hidden.
   const entriesRef = useRef(entries)
   const weeksRef = useRef(weeks)
@@ -37,7 +43,8 @@ export function useJournal() {
 
   useEffect(() => {
     loadAll()
-      .then(({ entries, weeks, settings }) => {
+      .then(({ entries, weeks, settings, language }) => {
+        setLanguageState(language)
         setEntries(entries)
         setWeeks(weeks)
         setSettingsState(settings)
@@ -115,6 +122,26 @@ export function useJournal() {
     [report],
   )
 
+  /** Switch language; active library prompts switch with it, the user's own stay as written. */
+  const setLanguage = useCallback(
+    (choice: Lang | null) => {
+      const next = choice ?? deviceLang()
+      setLanguageState(choice)
+      report(saveLanguage(choice))
+      setSettingsState((prev) => {
+        if (!prev) return prev
+        const translated = {
+          ...prev,
+          prompts: translatePrompts(prev.prompts, next),
+          weeklyPrompts: translatePrompts(prev.weeklyPrompts, next),
+        }
+        report(saveSettings(translated))
+        return translated
+      })
+    },
+    [report],
+  )
+
   const importFile = useCallback(
     (file: ExportFile) => {
       flush()
@@ -134,5 +161,5 @@ export function useJournal() {
     requestPersistence().then(setPersist)
   }, [])
 
-  return { loaded, entries, weeks, settings, saveError, persist, setItems, stamp, setWeekItems, updateSettings, importFile, flush, retryPersist }
+  return { loaded, lang, language, setLanguage, entries, weeks, settings, saveError, persist, setItems, stamp, setWeekItems, updateSettings, importFile, flush, retryPersist }
 }

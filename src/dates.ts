@@ -1,3 +1,14 @@
+// The locale for formatted dates follows the app's language (see i18n.ts); undefined means the device's.
+let locale: string | undefined
+
+export function setDateLocale(l: string | undefined) {
+  locale = l
+}
+
+export function dateLocale(): string | undefined {
+  return locale
+}
+
 /** Local-time date key, e.g. "2026-10-11". */
 export function toKey(d: Date): string {
   const y = d.getFullYear()
@@ -36,7 +47,7 @@ export function monthGrid(year: number, month: number): (string | null)[][] {
 }
 
 export function formatLong(key: string): string {
-  return fromKey(key).toLocaleDateString(undefined, {
+  return fromKey(key).toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -45,13 +56,13 @@ export function formatLong(key: string): string {
 }
 
 export function formatMonth(year: number, month: number): string {
-  return new Date(year, month, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+  return new Date(year, month, 1).toLocaleDateString(locale, { month: 'long', year: 'numeric' })
 }
 
 export function weekdayLabels(): string[] {
   // 2024-01-01 was a Monday.
   return Array.from({ length: 7 }, (_, i) =>
-    new Date(2024, 0, 1 + i).toLocaleDateString(undefined, { weekday: 'narrow' }),
+    new Date(2024, 0, 1 + i).toLocaleDateString(locale, { weekday: 'narrow' }),
   )
 }
 
@@ -79,5 +90,5 @@ export function weekDays(sunday: string): string[] {
 export function formatWeekRange(sunday: string): string {
   const [first] = weekDays(sunday)
   const short = { day: 'numeric', month: 'short' } as const
-  return `${fromKey(first).toLocaleDateString(undefined, short)} – ${fromKey(sunday).toLocaleDateString(undefined, { ...short, year: 'numeric' })}`
+  return `${fromKey(first).toLocaleDateString(locale, short)} – ${fromKey(sunday).toLocaleDateString(locale, { ...short, year: 'numeric' })}`
 }

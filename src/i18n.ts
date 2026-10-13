@@ -1,0 +1,280 @@
+/**
+ * The app speaks English and German. With no choice made it follows the device's languages,
+ * taking the first of them it knows and falling back to English.
+ */
+export type Lang = 'en' | 'de'
+export const LANGS: Lang[] = ['en', 'de']
+
+export function deviceLang(languages: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages ?? [navigator.language]): Lang {
+  for (const l of languages) {
+    const base = l.slice(0, 2).toLowerCase()
+    if (base === 'de' || base === 'en') return base
+  }
+  return 'en'
+}
+
+export function isLang(x: unknown): x is Lang {
+  return x === 'en' || x === 'de'
+}
+
+/** The locale for dates and times: the device's own variant when it speaks the same language. */
+export function localeFor(lang: Lang): string {
+  const device = typeof navigator === 'undefined' ? '' : navigator.language ?? ''
+  return device.toLowerCase().startsWith(lang) ? device : lang === 'de' ? 'de-DE' : 'en-GB'
+}
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+
+const en = {
+  appTitle: 'The Flower Press',
+  docTitle: 'Gratitude Journal',
+  quoted: (text: string) => `“${text}”`,
+  calendarView: 'Calendar view',
+  wreathView: 'Wreath view',
+  settings: 'Settings',
+  backToWreath: 'Back to the wreath',
+
+  // wreath
+  thisWeek: 'This week',
+  weekOf: 'Week of',
+  pressedOfSeven: (n: number) => `${n} of 7 pressed`,
+  reviewed: 'reviewed',
+  weekLabel: (range: string) => `Week of ${range}`,
+  slotPressed: 'pressed',
+  slotNotYet: 'not yet',
+  slotQuiet: 'quiet day',
+  reviewWritten: 'Weekly review written',
+  earlier: '‹ Earlier',
+  later: 'Later ›',
+  openToday: "Open today's page",
+  pressToday: "Press today's flower",
+  sundayReview: "It's Sunday: review your week",
+  readReview: 'Read the weekly review',
+  reviewThisWeek: 'Review this week',
+  installApp: 'Install as an app',
+  addToHome: 'Add the journal to your home screen',
+
+  // calendar
+  previousMonth: 'Previous month',
+  nextMonth: 'Next month',
+  nothingPressed: 'Nothing pressed this month',
+  flowersPressed: (n: number) => `${plural(n, 'flower', 'flowers')} pressed`,
+  today: 'Today',
+  hasEntry: 'has entry',
+  reviewWrittenShort: 'weekly review written',
+
+  // day
+  aPressedDay: 'A pressed day',
+  thisWeekNav: 'This week',
+  notYetHappened: "This day hasn't happened yet.",
+  changePrompts: 'Change prompts',
+  weeklyReview: 'Weekly review',
+  reviewCardWritten: 'Written. Tap to read or edit.',
+  reviewCardInvite: 'Sunday is a good day to look back on the week.',
+  previousDay: '‹ Previous day',
+  nextDay: 'Next day ›',
+  writeHere: 'write here…',
+
+  // stamp
+  stampPressed: 'Pressed',
+  stampWrite: 'Write to press',
+  stampFull: 'Press this day',
+  stampPartial: 'Press it as it is',
+  stampDoneLabel: 'This day is pressed',
+  stampLabel: (filled: number, total: number) => `Press this day (${filled} of ${total} answered)`,
+
+  // week review
+  notStarted: "This week hasn't started yet.",
+  lookBack: (n: number) => `Look back: ${n} of 7 days written`,
+  noDailyEntries: 'No daily entries this week.',
+  changeWeeklyPrompts: 'Change weekly prompts',
+  previousWeek: '‹ Previous week',
+  nextWeek: 'Next week ›',
+
+  // settings
+  language: 'Language',
+  languageIntro: 'Follows your device unless you pick one. Days you have already written keep their words.',
+  languageAuto: (name: string) => `Device (${name})`,
+  langNames: { en: 'English', de: 'Deutsch' } as Record<Lang, string>,
+  dailyPromptsTitle: 'Your daily prompts',
+  dailyPromptsIntro: "New days use these, in this order. Days you've already written keep their prompts.",
+  dailyLibraryTitle: 'Choose daily prompts',
+  weeklyPromptsTitle: 'Your weekly review prompts',
+  weeklyPromptsIntro: 'Shown in the weekly review, which you can open from the calendar or from any Sunday.',
+  weeklyLibraryTitle: 'Choose weekly review prompts',
+  libraryIntro: 'Tap to add or remove. Each one notes the research behind it.',
+  yourOwn: 'Your own',
+  writeYourOwn: 'Write your own prompt',
+  add: 'Add',
+  moveUp: (p: string) => `Move "${p}" up`,
+  moveDown: (p: string) => `Move "${p}" down`,
+  removePrompt: (p: string) => `Remove "${p}"`,
+  deletePrompt: (p: string) => `Delete "${p}"`,
+  safeTitle: 'Keeping your journal safe',
+  livesHere: (days: number, weeks: number) =>
+    `Your journal lives only on this device (${plural(days, 'day', 'days')}, ${plural(weeks, 'weekly review', 'weekly reviews')}).`,
+  persisted: 'The browser has agreed not to clear it to free up space.',
+  notPersisted: "The browser hasn't yet agreed to keep it permanently. Installing the app to your home screen usually fixes this.",
+  persistUnsupported: "This browser can't promise to keep it permanently.",
+  stillDeleted: "It's still deleted if you clear this site's data or uninstall the app, so export a backup now and then.",
+  askAgain: 'Ask again',
+  noBackup: 'No backup yet.',
+  lastBackup: (days: number) => `Last backup: ${days === 0 ? 'today' : `${plural(days, 'day', 'days')} ago`}.`,
+  exportBackup: 'Export backup',
+  import: 'Import',
+  importNote: "Importing merges days (newer edits win) and uses the backup's prompts.",
+  imported: (days: number, weeks: number) =>
+    `Imported ${plural(days, 'day', 'days')} and ${plural(weeks, 'weekly review', 'weekly reviews')}.`,
+  importFailed: 'Import failed.',
+  notABackup: 'Not a Gratitude Journal backup file.',
+
+  // install
+  installTitle: 'Put it on your home screen',
+  installBody: 'Installed, the journal opens like any other app, works offline, and your browser is less likely to clear its storage.',
+  installButton: 'Install app',
+  iosStep1: 'Open this page in Safari.',
+  iosStep2: 'Tap the Share button',
+  iosStep3: 'Choose “Add to Home Screen”, then “Add”.',
+  manualInstall: 'Open your browser menu (⋮) and choose “Install app” or “Add to Home screen”.',
+
+  // reminder
+  reminderTitle: 'A gentle reminder',
+  reminderToggle: 'Daily reminder',
+  reminderBody: "One quiet notification a day, only on days you haven't written yet.",
+  remindMeAt: 'Remind me at',
+  reminderIos: 'On iPhone, add the journal to your home screen first. Safari only lets installed apps send notifications.',
+  reminderUnsupported: "This browser can't show notifications.",
+  reminderDenied: "Notifications are blocked for the journal. Allow them in your phone's settings for this app, then come back.",
+  reminderBackground: (time: string) => `Around ${time}. Your phone picks the exact moment, so it can arrive a little late.`,
+  reminderForeground: (time: string) =>
+    `At ${time}, as long as the journal is still open in the background. If you swipe it away, today's reminder can't reach you.`,
+  notificationTitle: 'A moment for gratitude',
+  notificationBody: 'A few lines about today, whenever you’re ready.',
+
+  saveError: "Couldn't read or write this device's storage. Export a backup from settings if you can.",
+}
+
+export type Strings = typeof en
+
+const de: Strings = {
+  appTitle: 'Die Blumenpresse',
+  docTitle: 'Dankbarkeitstagebuch',
+  quoted: (text) => `„${text}“`,
+  calendarView: 'Kalender',
+  wreathView: 'Kranz',
+  settings: 'Einstellungen',
+  backToWreath: 'Zurück zum Kranz',
+
+  thisWeek: 'Diese Woche',
+  weekOf: 'Woche vom',
+  pressedOfSeven: (n) => `${n} von 7 gepresst`,
+  reviewed: 'Rückblick geschrieben',
+  weekLabel: (range) => `Woche ${range}`,
+  slotPressed: 'gepresst',
+  slotNotYet: 'noch nicht',
+  slotQuiet: 'stiller Tag',
+  reviewWritten: 'Wochenrückblick geschrieben',
+  earlier: '‹ Früher',
+  later: 'Später ›',
+  openToday: 'Heutige Seite öffnen',
+  pressToday: 'Die heutige Blume pressen',
+  sundayReview: 'Es ist Sonntag: Blick auf deine Woche',
+  readReview: 'Wochenrückblick lesen',
+  reviewThisWeek: 'Auf diese Woche zurückblicken',
+  installApp: 'Als App installieren',
+  addToHome: 'Das Tagebuch zum Home-Bildschirm hinzufügen',
+
+  previousMonth: 'Voriger Monat',
+  nextMonth: 'Nächster Monat',
+  nothingPressed: 'Diesen Monat noch nichts gepresst',
+  flowersPressed: (n) => `${plural(n, 'Blume', 'Blumen')} gepresst`,
+  today: 'Heute',
+  hasEntry: 'mit Eintrag',
+  reviewWrittenShort: 'Wochenrückblick geschrieben',
+
+  aPressedDay: 'Ein gepresster Tag',
+  thisWeekNav: 'Diese Woche',
+  notYetHappened: 'Dieser Tag kommt erst noch.',
+  changePrompts: 'Fragen ändern',
+  weeklyReview: 'Wochenrückblick',
+  reviewCardWritten: 'Geschrieben. Tippen zum Lesen oder Bearbeiten.',
+  reviewCardInvite: 'Der Sonntag ist ein guter Tag, um auf die Woche zurückzublicken.',
+  previousDay: '‹ Voriger Tag',
+  nextDay: 'Nächster Tag ›',
+  writeHere: 'hier schreiben…',
+
+  stampPressed: 'Gepresst',
+  stampWrite: 'Erst schreiben',
+  stampFull: 'Diesen Tag pressen',
+  stampPartial: 'So pressen, wie er ist',
+  stampDoneLabel: 'Dieser Tag ist gepresst',
+  stampLabel: (filled, total) => `Diesen Tag pressen (${filled} von ${total} beantwortet)`,
+
+  notStarted: 'Diese Woche hat noch nicht begonnen.',
+  lookBack: (n) => `Rückblick: ${n} von 7 Tagen geschrieben`,
+  noDailyEntries: 'Diese Woche keine Tageseinträge.',
+  changeWeeklyPrompts: 'Wochenfragen ändern',
+  previousWeek: '‹ Vorige Woche',
+  nextWeek: 'Nächste Woche ›',
+
+  language: 'Sprache',
+  languageIntro: 'Folgt deinem Gerät, solange du keine wählst. Bereits geschriebene Tage behalten ihren Wortlaut.',
+  languageAuto: (name) => `Gerät (${name})`,
+  langNames: { en: 'English', de: 'Deutsch' },
+  dailyPromptsTitle: 'Deine täglichen Fragen',
+  dailyPromptsIntro: 'Neue Tage nutzen diese Fragen in dieser Reihenfolge. Bereits geschriebene Tage behalten ihre Fragen.',
+  dailyLibraryTitle: 'Tägliche Fragen wählen',
+  weeklyPromptsTitle: 'Deine Fragen für den Wochenrückblick',
+  weeklyPromptsIntro: 'Erscheinen im Wochenrückblick, den du vom Kalender oder von jedem Sonntag aus öffnen kannst.',
+  weeklyLibraryTitle: 'Fragen für den Wochenrückblick wählen',
+  libraryIntro: 'Tippen zum Hinzufügen oder Entfernen. Zu jeder Frage steht, welche Forschung dahintersteht.',
+  yourOwn: 'Eigene',
+  writeYourOwn: 'Eigene Frage schreiben',
+  add: 'Hinzufügen',
+  moveUp: (p) => `„${p}“ nach oben`,
+  moveDown: (p) => `„${p}“ nach unten`,
+  removePrompt: (p) => `„${p}“ entfernen`,
+  deletePrompt: (p) => `„${p}“ löschen`,
+  safeTitle: 'Dein Tagebuch sicher aufbewahren',
+  livesHere: (days, weeks) =>
+    `Dein Tagebuch liegt nur auf diesem Gerät (${plural(days, 'Tag', 'Tage')}, ${plural(weeks, 'Wochenrückblick', 'Wochenrückblicke')}).`,
+  persisted: 'Der Browser hat zugesagt, es nicht zu löschen, um Platz zu schaffen.',
+  notPersisted: 'Der Browser hat noch nicht zugesagt, es dauerhaft aufzubewahren. Meist hilft es, die App zum Home-Bildschirm hinzuzufügen.',
+  persistUnsupported: 'Dieser Browser kann nicht versprechen, es dauerhaft aufzubewahren.',
+  stillDeleted: 'Es wird trotzdem gelöscht, wenn du die Websitedaten löschst oder die App entfernst. Exportiere also ab und zu eine Sicherung.',
+  askAgain: 'Erneut fragen',
+  noBackup: 'Noch keine Sicherung.',
+  lastBackup: (days) => `Letzte Sicherung: ${days === 0 ? 'heute' : `vor ${plural(days, 'Tag', 'Tagen')}`}.`,
+  exportBackup: 'Sicherung exportieren',
+  import: 'Importieren',
+  importNote: 'Beim Import werden Tage zusammengeführt (neuere Änderungen gewinnen) und die Fragen der Sicherung übernommen.',
+  imported: (days, weeks) =>
+    `${plural(days, 'Tag', 'Tage')} und ${plural(weeks, 'Wochenrückblick', 'Wochenrückblicke')} importiert.`,
+  importFailed: 'Import fehlgeschlagen.',
+  notABackup: 'Das ist keine Sicherungsdatei des Dankbarkeitstagebuchs.',
+
+  installTitle: 'Auf den Home-Bildschirm legen',
+  installBody: 'Installiert öffnet sich das Tagebuch wie jede andere App, funktioniert offline, und der Browser löscht seinen Speicher seltener.',
+  installButton: 'App installieren',
+  iosStep1: 'Öffne diese Seite in Safari.',
+  iosStep2: 'Tippe auf „Teilen“',
+  iosStep3: 'Wähle „Zum Home-Bildschirm“ und dann „Hinzufügen“.',
+  manualInstall: 'Öffne das Browsermenü (⋮) und wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.',
+
+  reminderTitle: 'Eine sanfte Erinnerung',
+  reminderToggle: 'Tägliche Erinnerung',
+  reminderBody: 'Eine leise Mitteilung am Tag, nur an Tagen, an denen du noch nichts geschrieben hast.',
+  remindMeAt: 'Erinnere mich um',
+  reminderIos: 'Auf dem iPhone lege das Tagebuch zuerst auf den Home-Bildschirm. Safari erlaubt Mitteilungen nur installierten Apps.',
+  reminderUnsupported: 'Dieser Browser kann keine Mitteilungen anzeigen.',
+  reminderDenied: 'Mitteilungen sind für das Tagebuch blockiert. Erlaube sie in den Einstellungen deines Telefons für diese App und komm dann zurück.',
+  reminderBackground: (time) => `Gegen ${time}. Dein Telefon wählt den genauen Moment, es kann also etwas später kommen.`,
+  reminderForeground: (time) =>
+    `Um ${time}, solange das Tagebuch im Hintergrund geöffnet ist. Wenn du es wegwischst, kann die heutige Erinnerung dich nicht erreichen.`,
+  notificationTitle: 'Ein Moment der Dankbarkeit',
+  notificationBody: 'Ein paar Zeilen über heute, wann immer du so weit bist.',
+
+  saveError: 'Der Speicher dieses Geräts konnte nicht gelesen oder beschrieben werden. Exportiere wenn möglich eine Sicherung in den Einstellungen.',
+}
+
+export const STRINGS: Record<Lang, Strings> = { en, de }

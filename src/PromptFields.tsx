@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
+import { useT } from './useLang'
 import type { Item } from './storage'
 
 type Props = {
@@ -27,6 +28,7 @@ export default function PromptFields({ items, rows, onAnswer }: Props) {
 }
 
 function Ruled({ value, rows, onChange }: { value: string; rows: number; onChange: (v: string) => void }) {
+  const t = useT()
   const ref = useRef<HTMLTextAreaElement>(null)
   // Grow with the writing so the page reads like paper, not a scroll box.
   useLayoutEffect(() => {
@@ -43,7 +45,7 @@ function Ruled({ value, rows, onChange }: { value: string; rows: number; onChang
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={rows}
-      placeholder="write here…"
+      placeholder={t.writeHere}
     />
   )
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useT } from './useLang'
 import PromptFields from './PromptFields'
 import TopBar, { BackLink } from './TopBar'
 import { formatLong, formatWeekRange, fromKey, toKey, todayKey, weekDays } from './dates'
@@ -14,6 +15,7 @@ type Props = {
 }
 
 export default function WeekView({ sunday, entry, days, currentPrompts, onChange, onBack }: Props) {
+  const t = useT()
   const today = todayKey()
   const [monday] = weekDays(sunday)
   const future = monday > today
@@ -41,20 +43,20 @@ export default function WeekView({ sunday, entry, days, currentPrompts, onChange
   return (
     <section>
       <TopBar
-        title="Weekly review"
-        start={<BackLink href="#/" label="Back to the wreath" onClick={onBack} />}
+        title={t.weeklyReview}
+        start={<BackLink href="#/" label={t.backToWreath} onClick={onBack} />}
       />
       <p className="mb-5 text-center text-2xl italic">{formatWeekRange(sunday)}</p>
 
       {future ? (
-        <p className="empty my-12 text-center italic opacity-60">This week hasn't started yet.</p>
+        <p className="empty my-12 text-center italic opacity-60">{t.notStarted}</p>
       ) : (
         <>
           <details className="recap collapse collapse-arrow mb-6 rounded-sm border border-base-300 bg-base-100">
-            <summary className="collapse-title italic">Look back: {written.length} of 7 days written</summary>
+            <summary className="collapse-title italic">{t.lookBack(written.length)}</summary>
             <div className="collapse-content text-sm">
               {written.length === 0 ? (
-                <p className="italic opacity-60">No daily entries this week.</p>
+                <p className="italic opacity-60">{t.noDailyEntries}</p>
               ) : (
                 written.map((d) => (
                   <div key={d} className="recap-day mt-3 first:mt-0">
@@ -77,7 +79,7 @@ export default function WeekView({ sunday, entry, days, currentPrompts, onChange
           <form onSubmit={(e) => e.preventDefault()}>
             <PromptFields items={items} rows={4} onAnswer={update} />
             <p className="mt-6 text-center text-sm italic opacity-60">
-              <a className="link text-rose" href="#/settings">Change weekly prompts</a>
+              <a className="link text-rose" href="#/settings">{t.changeWeeklyPrompts}</a>
             </p>
           </form>
         </>
@@ -85,11 +87,11 @@ export default function WeekView({ sunday, entry, days, currentPrompts, onChange
 
       <nav className="mt-4 flex justify-between">
         <a className="btn btn-ghost btn-sm" href={`#/week/${prevSunday}`}>
-          ‹ Previous week
+          {t.previousWeek}
         </a>
         {nextStarted && (
           <a className="btn btn-ghost btn-sm" href={`#/week/${nextSunday}`}>
-            Next week ›
+            {t.nextWeek}
           </a>
         )}
       </nav>

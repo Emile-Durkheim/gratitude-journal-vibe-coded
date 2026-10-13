@@ -1,3 +1,4 @@
+import { useT } from './useLang'
 import { Flower, petalsFor } from './flower'
 import { formatLong, formatMonth, monthGrid, todayKey, weekdayLabels } from './dates'
 import type { Entries } from './storage'
@@ -14,6 +15,7 @@ type Props = {
 
 /** The whole month as a pressing sheet: a small flower for each written day. */
 export default function CalendarView({ year, month, entries, weeks, promptCount, onMonthChange }: Props) {
+  const t = useT()
   const today = todayKey()
   const now = new Date()
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth()
@@ -26,25 +28,25 @@ export default function CalendarView({ year, month, entries, weeks, promptCount,
   return (
     <section>
       <TopBar
-        title="The Flower Press"
+        title={t.appTitle}
         start={
-          <IconLink href="#/" label="Wreath view">
+          <IconLink href="#/" label={t.wreathView}>
             <WreathIcon />
           </IconLink>
         }
         end={
-          <IconLink href="#/settings" label="Settings">
+          <IconLink href="#/settings" label={t.settings}>
             <GearIcon />
           </IconLink>
         }
       />
 
       <div className="flex items-center justify-between">
-        <button className="btn btn-ghost btn-sm text-2xl" onClick={() => shift(-1)} aria-label="Previous month">
+        <button className="btn btn-ghost btn-sm text-2xl" onClick={() => shift(-1)} aria-label={t.previousMonth}>
           ‹
         </button>
         <h2 className="text-2xl italic">{formatMonth(year, month)}</h2>
-        <button className="btn btn-ghost btn-sm text-2xl" onClick={() => shift(1)} aria-label="Next month">
+        <button className="btn btn-ghost btn-sm text-2xl" onClick={() => shift(1)} aria-label={t.nextMonth}>
           ›
         </button>
       </div>
@@ -74,11 +76,11 @@ export default function CalendarView({ year, month, entries, weeks, promptCount,
 
       <div className="mt-2 flex min-h-9 items-center justify-between border-t border-base-300 pt-2">
         <span className="text-sm italic opacity-70">
-          {count === 0 ? 'Nothing pressed this month' : `${count} ${count === 1 ? 'flower' : 'flowers'} pressed`}
+          {count === 0 ? t.nothingPressed : t.flowersPressed(count)}
         </span>
         {!isCurrentMonth && (
           <button className="btn btn-ghost btn-sm text-rose" onClick={() => onMonthChange(now.getFullYear(), now.getMonth())}>
-            Today
+            {t.today}
           </button>
         )}
       </div>
@@ -93,6 +95,7 @@ function DayCell({ dateKey, today, entries, weekDone, promptCount }: {
   weekDone: boolean
   promptCount: number
 }) {
+  const t = useT()
   const entry = entries[dateKey]
   const day = Number(dateKey.slice(8))
   const future = dateKey > today
@@ -103,7 +106,7 @@ function DayCell({ dateKey, today, entries, weekDone, promptCount }: {
     isToday ? 'today outline-[1.5px] outline-dashed outline-rose' : '',
     future ? 'future opacity-35' : 'hover:bg-base-100',
   ].join(' ')
-  const label = `${formatLong(dateKey)}${entry ? ', has entry' : ''}${weekDone ? ', weekly review written' : ''}`
+  const label = `${formatLong(dateKey)}${entry ? `, ${t.hasEntry}` : ''}${weekDone ? `, ${t.reviewWrittenShort}` : ''}`
   const inner = (
     <>
       <span className={`italic leading-none ${isToday ? 'font-semibold text-rose' : 'opacity-70'}`}>{day}</span>

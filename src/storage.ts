@@ -1,6 +1,7 @@
-import { createStore, del, entries as idbEntries, set, setMany } from 'idb-keyval'
+import { createStore, del, entries as idbEntries, get, set, setMany } from 'idb-keyval'
 import { isValidKey } from './dates'
-import { DEFAULT_PROMPTS, DEFAULT_WEEKLY_PROMPTS } from './prompts'
+import { deviceLang, isLang, type Lang } from './i18n'
+import { defaultPrompts, defaultWeeklyPrompts } from './prompts'
 
 export type Item = { prompt: string; answer: string }
 
@@ -38,6 +39,8 @@ const store = createStore('gratitude-journal', 'kv')
 const SETTINGS_KEY = 'settings'
 const ENTRY_PREFIX = 'entry:'
 const WEEK_PREFIX = 'week:'
+/** The chosen language stays with the device, like the reminder: backups don't carry it. */
+const LANGUAGE_KEY = 'language'
 
 function isStringArray(x: unknown): x is string[] {
   return Array.isArray(x) && x.every((s) => typeof s === 'string')
@@ -65,32 +68,40 @@ export function sanitizeEntries(x: unknown): Entries {
   return out
 }
 
-export function sanitizeSettings(x: unknown): Settings {
+/** Settings from storage or a backup; missing prompt lists start from the defaults in `lang`. */
+export function sanitizeSettings(x: unknown, lang: Lang = 'en'): Settings {
   const s = (x ?? {}) as Partial<Settings>
   const list = (x: unknown, fallback: string[]) => {
     const kept = isStringArray(x) ? x.filter((p) => p.trim()) : []
     return kept.length ? kept : fallback
   }
   return {
-    prompts: list(s.prompts, DEFAULT_PROMPTS),
+    prompts: list(s.prompts, defaultPrompts(lang)),
     customPrompts: list(s.customPrompts, []),
-    weeklyPrompts: list(s.weeklyPrompts, DEFAULT_WEEKLY_PROMPTS),
+    weeklyPrompts: list(s.weeklyPrompts, defaultWeeklyPrompts(lang)),
     customWeeklyPrompts: list(s.customWeeklyPrompts, []),
     lastExportAt: typeof s.lastExportAt === 'number' ? s.lastExportAt : null,
   }
 }
 
-export async function loadAll(): Promise<{ entries: Entries; weeks: Entries; settings: Settings }> {
+export async function loadAll(): Promise<{ entries: Entries; weeks: Entries; settings: Settings; language: Lang | null }> {
   const rows = await idbEntries<string, unknown>(store)
   const days: Record<string, unknown> = {}
   const weeks: Record<string, unknown> = {}
   let settings: unknown = null
+  let language: Lang | null = null
   for (const [key, value] of rows) {
     if (key === SETTINGS_KEY) settings = value
+    else if (key === LANGUAGE_KEY && isLang(value)) language = value
     else if (key.startsWith(ENTRY_PREFIX)) days[key.slice(ENTRY_PREFIX.length)] = value
     else if (key.startsWith(WEEK_PREFIX)) weeks[key.slice(WEEK_PREFIX.length)] = value
   }
-  return { entries: sanitizeEntries(days), weeks: sanitizeEntries(weeks), settings: sanitizeSettings(settings) }
+  return {
+    entries: sanitizeEntries(days),
+    weeks: sanitizeEntries(weeks),
+    settings: sanitizeSettings(settings, language ?? deviceLang()),
+    language,
+  }
 }
 
 /** Writes one day; an entry with no content deletes the day. */
@@ -115,6 +126,17 @@ export async function saveEntries(entries: Entries, weeks: Entries): Promise<voi
   )
 }
 
+/** Stores the language choice; null goes back to following the device. */
+export async function saveLanguage(language: Lang | null): Promise<void> {
+  if (language) await set(LANGUAGE_KEY, language, store)
+  else await del(LANGUAGE_KEY, store)
+}
+
+export async function loadLanguage(): Promise<Lang | null> {
+  const value = await get(LANGUAGE_KEY, store)
+  return isLang(value) ? value : null
+}
+
 export async function saveSettings(settings: Settings): Promise<void> {
   await set(SETTINGS_KEY, settings, store)
 }
@@ -134,14 +156,14 @@ export function toExport(entries: Entries, settings: Settings, weeks: Entries = 
 }
 
 /** Parse an export file. Throws on anything that isn't one. */
-export function parseExport(text: string): ExportFile {
+export function parseExport(text: string, lang: Lang = 'en'): ExportFile {
   const data = JSON.parse(text)
   if (!data || data.version !== 2 || typeof data.entries !== 'object') {
     throw new Error('Not a Gratitude Journal backup file.')
   }
   return {
     version: 2,
-    settings: sanitizeSettings(data.settings),
+    settings: sanitizeSettings(data.settings, lang),
     entries: sanitizeEntries(data.entries),
     weeks: sanitizeEntries(data.weeks),
   }

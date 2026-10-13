@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useT } from './useLang'
 
 type Props = {
   filled: number
@@ -17,10 +18,11 @@ const CIRC = 2 * Math.PI * R
  * saying "done".
  */
 export default function StampButton({ filled, total, stamped, onStamp }: Props) {
+  const t = useT()
   const progress = stamped ? 1 : total ? filled / total : 0
   const ready = filled > 0 && !stamped
   const full = filled === total && !stamped
-  const label = stamped ? 'Pressed' : filled === 0 ? 'Write to press' : full ? 'Press this day' : 'Press it as it is'
+  const label = stamped ? t.stampPressed : filled === 0 ? t.stampWrite : full ? t.stampFull : t.stampPartial
   return (
     <div className="flex flex-col items-center gap-2">
       <motion.button
@@ -32,7 +34,7 @@ export default function StampButton({ filled, total, stamped, onStamp }: Props) 
           onStamp({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
         }}
         whileTap={ready ? { scale: 0.86 } : undefined}
-        aria-label={stamped ? 'This day is pressed' : `Press this day (${filled} of ${total} answered)`}
+        aria-label={stamped ? t.stampDoneLabel : t.stampLabel(filled, total)}
         aria-pressed={stamped}
       >
         <svg viewBox="-50 -50 100 100" width="104" height="104" overflow="visible" aria-hidden="true">

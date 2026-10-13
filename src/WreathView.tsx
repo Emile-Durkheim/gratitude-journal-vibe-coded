@@ -2,7 +2,8 @@ import type React from 'react'
 import { useInstall } from './install'
 import { FlowerG, LeafG, petalsFor } from './flower'
 import TopBar, { CalendarIcon, GearIcon, IconLink } from './TopBar'
-import { formatLong, formatWeekRange, fromKey, isSunday, toKey, todayKey, weekDays, weekEnd } from './dates'
+import { useT } from './useLang'
+import { dateLocale, formatLong, formatWeekRange, fromKey, isSunday, toKey, todayKey, weekDays, weekEnd } from './dates'
 import type { Entries } from './storage'
 
 type Props = {
@@ -16,7 +17,6 @@ type Props = {
 const SIZE = 340
 const C = SIZE / 2
 const R = 112
-const SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 /** Home screen: this week as a wreath with one flower per day, Monday at the top going clockwise. */
 export default function WreathView({ sunday, entries, weeks, promptCount, onWeekChange }: Props) {
@@ -33,25 +33,26 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
   const later = shift(1)
   const isThisWeek = sunday === thisWeek
   const install = useInstall()
+  const t = useT()
 
   return (
     <section>
       <TopBar
-        title="The Flower Press"
+        title={t.appTitle}
         start={
-          <IconLink href="#/calendar" label="Calendar view">
+          <IconLink href="#/calendar" label={t.calendarView}>
             <CalendarIcon />
           </IconLink>
         }
         end={
-          <IconLink href="#/settings" label="Settings">
+          <IconLink href="#/settings" label={t.settings}>
             <GearIcon />
           </IconLink>
         }
       />
 
       <div className="relative mx-auto w-full max-w-[340px]">
-        <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="wreath block w-full" role="list" aria-label={`Week of ${formatWeekRange(sunday)}`}>
+        <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="wreath block w-full" role="list" aria-label={t.weekLabel(formatWeekRange(sunday))}>
           {/* the vine runs between the day slots, leaving room for each flower */}
           {days.map((_, i) => {
             const gap = 17
@@ -89,7 +90,7 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
               <g key={d} role="listitem">
                 <Slot index={i} dateKey={d} x={x} y={y} angle={a} today={today} entries={entries} promptCount={promptCount} />
                 <text x={lx} y={ly - 3} textAnchor="middle" className="fill-current text-[11px] uppercase tracking-[0.15em] opacity-70">
-                  {SHORT[i]}
+                  {fromKey(d).toLocaleDateString(dateLocale(), { weekday: 'short' }).replace('.', '')}
                 </text>
                 <text x={lx} y={ly + 12} textAnchor="middle" className={`text-[14px] italic ${d === today ? 'fill-rose font-semibold' : 'fill-current opacity-60'}`}>
                   {Number(d.slice(8))}
@@ -98,31 +99,32 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
             )
           })}
           {reviewed && (
-            <path d={`M${C + 52} ${C - 70} v30 l7 -6 l7 6 v-30z`} fill="#b5576c" fillOpacity=".75" aria-label="Weekly review written" />
+            <path d={`M${C + 52} ${C - 70} v30 l7 -6 l7 6 v-30z`} fill="#b5576c" fillOpacity=".75" aria-label={t.reviewWritten} />
           )}
         </svg>
         {days.includes(today) && <TodayRing index={days.indexOf(today)} />}
         <div className="pointer-events-none absolute inset-0 grid place-content-center text-center">
-          <span className="text-[0.7rem] uppercase tracking-[0.25em] opacity-60">{isThisWeek ? 'This week' : 'Week of'}</span>
+          <span className="text-[0.7rem] uppercase tracking-[0.25em] opacity-60">{isThisWeek ? t.thisWeek : t.weekOf}</span>
           <span className="week-range text-xl italic leading-tight">{formatWeekRange(sunday)}</span>
           <span className="pressed-count mt-1 text-sm opacity-70">
-            {pressed} of 7 pressed{reviewed ? ' · reviewed' : ''}
+            {t.pressedOfSeven(pressed)}
+            {reviewed ? ` · ${t.reviewed}` : ''}
           </span>
         </div>
       </div>
 
       <nav className="mb-4 flex items-center justify-between">
         <button className="btn btn-ghost btn-sm" onClick={() => onWeekChange(shift(-1))}>
-          ‹ Earlier
+          {t.earlier}
         </button>
         {!isThisWeek && (
           <button className="btn btn-ghost btn-sm text-rose" onClick={() => onWeekChange(thisWeek)}>
-            This week
+            {t.thisWeek}
           </button>
         )}
         {later <= thisWeek ? (
           <button className="btn btn-ghost btn-sm" onClick={() => onWeekChange(later)}>
-            Later ›
+            {t.later}
           </button>
         ) : (
           <span className="w-20" />
@@ -131,13 +133,13 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
 
       <div className="grid gap-3">
         <a className="btn btn-primary btn-lg w-full" href={`#/day/${today}`}>
-          {entries[today] ? "Open today's page" : "Press today's flower"}
+          {entries[today] ? t.openToday : t.pressToday}
         </a>
         <a
           className={`week-btn btn btn-lg w-full ${isSunday(today) && isThisWeek ? 'btn-secondary highlight' : 'btn-outline'}`}
           href={`#/week/${sunday <= thisWeek ? sunday : thisWeek}`}
         >
-          {isSunday(today) && isThisWeek && !reviewed ? "It's Sunday: review your week" : reviewed ? 'Read the weekly review' : 'Review this week'}
+          {isSunday(today) && isThisWeek && !reviewed ? t.sundayReview : reviewed ? t.readReview : t.reviewThisWeek}
         </a>
       </div>
 
@@ -145,11 +147,11 @@ export default function WreathView({ sunday, entries, weeks, promptCount, onWeek
         <p className="mt-5 text-center text-sm italic opacity-70">
           {install.kind === 'prompt' ? (
             <button className="link text-rose" onClick={install.install}>
-              Install as an app
+              {t.installApp}
             </button>
           ) : (
             <a className="link text-rose" href="#/settings">
-              Add the journal to your home screen
+              {t.addToHome}
             </a>
           )}
         </p>
@@ -191,7 +193,8 @@ function Slot({ index, dateKey, x, y, angle, today, entries, promptCount }: {
   const entry = entries[dateKey]
   const future = dateKey > today
   const isToday = dateKey === today
-  const label = `${formatLong(dateKey)}${entry ? ', pressed' : future ? ', not yet' : ', quiet day'}`
+  const t = useT()
+  const label = `${formatLong(dateKey)}, ${entry ? t.slotPressed : future ? t.slotNotYet : t.slotQuiet}`
   // Flowers open one after another around the wreath, Monday first.
   const delay = { '--d': `${index * 110}ms` } as React.CSSProperties
   const body = entry ? (

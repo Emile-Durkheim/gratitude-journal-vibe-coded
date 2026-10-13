@@ -1,5 +1,6 @@
 import { Flower, LeafG, petalsFor } from './flower'
-import { formatLong, fromKey, todayKey, weekDays, weekEnd } from './dates'
+import { useT } from './useLang'
+import { dateLocale, formatLong, fromKey, todayKey, weekDays, weekEnd } from './dates'
 import type { Entries } from './storage'
 
 type Props = {
@@ -21,14 +22,15 @@ type Props = {
 const swayStyle = (i: number) => ({ animationDuration: `${4.2 + ((i * 7) % 5) * 0.45}s`, animationDelay: `${-i * 0.9}s` })
 
 export default function WeekStrip({ date, entries, promptCount, petals, filled, complete }: Props) {
+  const t = useT()
   const today = todayKey()
   return (
-    <nav className="week-strip flex items-end" aria-label="This week">
+    <nav className="week-strip flex items-end" aria-label={t.thisWeekNav}>
       {weekDays(weekEnd(date)).map((d, i) => {
         const selected = d === date
         const future = d > today
         const entry = entries[d]
-        const weekday = fromKey(d).toLocaleDateString(undefined, { weekday: 'narrow' })
+        const weekday = fromKey(d).toLocaleDateString(dateLocale(), { weekday: 'narrow' })
         const flower = selected ? (
           // the sway and the "pressed" glow live on an HTML wrapper so they stay smooth while scrolling
           <span className={`live-flower sway ${complete ? 'complete' : ''}`}>
@@ -66,7 +68,7 @@ export default function WeekStrip({ date, entries, promptCount, petals, filled, 
         )
         const cls = `strip-day flex flex-col items-center gap-0.5 rounded py-1 ${selected ? 'selected' : ''}`
         return future ? (
-          <span key={d} className={`${cls} opacity-60`} aria-label={`${formatLong(d)}, not yet`}>
+          <span key={d} className={`${cls} opacity-60`} aria-label={`${formatLong(d)}, ${t.slotNotYet}`}>
             {body}
           </span>
         ) : (
@@ -75,7 +77,7 @@ export default function WeekStrip({ date, entries, promptCount, petals, filled, 
             href={`#/day/${d}`}
             className={cls}
             aria-current={selected ? 'page' : undefined}
-            aria-label={`${formatLong(d)}${entry ? ', pressed' : ''}`}
+            aria-label={`${formatLong(d)}${entry ? `, ${t.slotPressed}` : ''}`}
           >
             {body}
           </a>

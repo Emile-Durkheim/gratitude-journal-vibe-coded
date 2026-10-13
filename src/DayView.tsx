@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { flowerColor } from './flower'
 import PetalDrift from './PetalDrift'
 import PromptFields from './PromptFields'
+import { useLang } from './useLang'
 import StampButton from './StampButton'
 import TopBar, { BackLink } from './TopBar'
 import WeekStrip from './WeekStrip'
@@ -23,6 +24,7 @@ type Props = {
 }
 
 export default function DayView({ date, entry, entries, hasWeekReview, currentPrompts, onChange, onStamp, onBack }: Props) {
+  const { t, lang } = useLang()
   const today = todayKey()
   const future = date > today
   // A day that already has an entry keeps the prompts it was written with.
@@ -63,7 +65,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
     return () => root.classList.remove('bloomed')
   }, [stamped, bloom, date])
 
-  const quote = quoteFor(date)
+  const quote = quoteFor(date, lang)
 
   const neighbour = (delta: number) => {
     const d = fromKey(date)
@@ -76,8 +78,8 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
   return (
     <section>
       <TopBar
-        title={date === today ? 'Today' : 'A pressed day'}
-        start={<BackLink href="#/" label="Back to the wreath" onClick={onBack} />}
+        title={date === today ? t.today : t.aPressedDay}
+        start={<BackLink href="#/" label={t.backToWreath} onClick={onBack} />}
       />
       <div ref={sticky} className="day-sticky">
         <WeekStrip
@@ -100,7 +102,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
                 ✿
               </span>
             )}
-            “{quote.text}” <span className="whitespace-nowrap not-italic opacity-75">— {quote.by}</span>
+            {t.quoted(quote.text)} <span className="whitespace-nowrap not-italic opacity-75">— {quote.by}</span>
           </span>
         </span>
       </div>
@@ -123,7 +125,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
       {blooming && <PetalDrift color={flowerColor(date)} />}
 
       {future ? (
-        <p className="empty my-12 text-center italic opacity-60">This day hasn't happened yet.</p>
+        <p className="empty my-12 text-center italic opacity-60">{t.notYetHappened}</p>
       ) : (
         <form className="mt-3" onSubmit={(e) => e.preventDefault()}>
           <PromptFields items={items} rows={3} onAnswer={update} />
@@ -131,7 +133,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
             <StampButton filled={filled} total={items.length} stamped={stamped} onStamp={stampDay} />
           </div>
           <p className="mt-5 text-center text-sm italic opacity-60">
-            <a className="link text-rose" href="#/settings">Change prompts</a>
+            <a className="link text-rose" href="#/settings">{t.changePrompts}</a>
           </p>
         </form>
       )}
@@ -144,9 +146,9 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
           <span className="card-body flex-row items-center gap-3 p-4">
             <span className="text-3xl text-rose" aria-hidden="true">✿</span>
             <span className="grow">
-              <strong className="font-semibold">Weekly review</strong>
+              <strong className="font-semibold">{t.weeklyReview}</strong>
               <span className="block text-sm italic opacity-70">
-                {hasWeekReview ? 'Written. Tap to read or edit.' : 'Sunday is a good day to look back on the week.'}
+                {hasWeekReview ? t.reviewCardWritten : t.reviewCardInvite}
               </span>
             </span>
             <span className="text-2xl" aria-hidden="true">›</span>
@@ -156,11 +158,11 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
 
       <nav className="mt-4 flex justify-between">
         <a className="btn btn-ghost btn-sm" href={`#/day/${prev}`}>
-          ‹ Previous day
+          {t.previousDay}
         </a>
         {next <= today && (
           <a className="btn btn-ghost btn-sm" href={`#/day/${next}`}>
-            Next day ›
+            {t.nextDay}
           </a>
         )}
       </nav>

@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import type { PromptGroup } from './prompts'
+import { useT } from './useLang'
 
 type Props = {
   title: string
   intro: string
+  libraryTitle: string
   /** Active prompts, in order. */
   prompts: string[]
   /** User-written prompts, shown in the library under "Your own". */
@@ -13,7 +15,8 @@ type Props = {
   onChange: (patch: { prompts?: string[]; custom?: string[] }) => void
 }
 
-export default function PromptSection({ title, intro, prompts, custom, library, defaults, onChange }: Props) {
+export default function PromptSection({ title, intro, libraryTitle, prompts, custom, library, defaults, onChange }: Props) {
+  const t = useT()
   const [draft, setDraft] = useState('')
 
   const toggle = (text: string) => {
@@ -55,14 +58,14 @@ export default function PromptSection({ title, intro, prompts, custom, library, 
                   {i + 1}
                 </span>
                 <span className="grow">{p}</span>
-                <button className="btn btn-ghost btn-square btn-sm" onClick={() => move(i, -1)} disabled={i === 0} aria-label={`Move "${p}" up`}>
+                <button className="btn btn-ghost btn-square btn-sm" onClick={() => move(i, -1)} disabled={i === 0} aria-label={t.moveUp(p)}>
                   ↑
                 </button>
                 <button
                   className="btn btn-ghost btn-square btn-sm"
                   onClick={() => move(i, 1)}
                   disabled={i === prompts.length - 1}
-                  aria-label={`Move "${p}" down`}
+                  aria-label={t.moveDown(p)}
                 >
                   ↓
                 </button>
@@ -70,7 +73,7 @@ export default function PromptSection({ title, intro, prompts, custom, library, 
                   className="btn btn-ghost btn-square btn-sm"
                   onClick={() => toggle(p)}
                   disabled={prompts.length === 1}
-                  aria-label={`Remove "${p}"`}
+                  aria-label={t.removePrompt(p)}
                 >
                   ✕
                 </button>
@@ -82,8 +85,8 @@ export default function PromptSection({ title, intro, prompts, custom, library, 
 
       <div className="card mb-4 rounded-sm border border-base-300 bg-base-100">
         <div className="card-body gap-2 p-4">
-          <h2 className="card-title text-xl font-normal italic">Choose {title.toLowerCase().replace(/^your /, '')}</h2>
-          <p className="text-sm text-base-content/70">Tap to add or remove. Each one notes the research behind it.</p>
+          <h2 className="card-title text-xl font-normal italic">{libraryTitle}</h2>
+          <p className="text-sm text-base-content/70">{t.libraryIntro}</p>
           <div className="library -mx-1 mt-1 max-h-96 overflow-y-auto overscroll-contain px-1" role="list">
             {library.map((group) => (
               <div key={group.title} role="presentation">
@@ -98,7 +101,7 @@ export default function PromptSection({ title, intro, prompts, custom, library, 
             {custom.length > 0 && (
               <div role="presentation">
                 <h3 className="sticky top-0 z-10 bg-base-100 pb-1.5 pt-3 text-xs font-semibold uppercase tracking-widest opacity-60">
-                  Your own
+                  {t.yourOwn}
                 </h3>
                 {custom.map((text) => (
                   <LibraryRow key={text} text={text} on={prompts.includes(text)} onToggle={toggle} onDelete={() => remove(text)} />
@@ -118,12 +121,12 @@ export default function PromptSection({ title, intro, prompts, custom, library, 
               className="input input-primary grow"
               value={draft}
               maxLength={140}
-              placeholder="Write your own prompt"
-              aria-label={`Write your own prompt for ${title.toLowerCase()}`}
+              placeholder={t.writeYourOwn}
+              aria-label={`${t.writeYourOwn}: ${title}`}
               onChange={(e) => setDraft(e.target.value)}
             />
             <button type="submit" className="btn btn-secondary" disabled={!draft.trim()}>
-              Add
+              {t.add}
             </button>
           </form>
         </div>
@@ -140,6 +143,7 @@ function LibraryRow(props: {
   onDelete?: () => void
 }) {
   const { text, why, on, onToggle, onDelete } = props
+  const t = useT()
   return (
     <div className="mb-2 flex items-center gap-1" role="listitem">
       <button
@@ -163,7 +167,7 @@ function LibraryRow(props: {
         </span>
       </button>
       {onDelete && (
-        <button className="btn btn-ghost btn-square btn-sm" onClick={onDelete} aria-label={`Delete "${text}"`}>
+        <button className="btn btn-ghost btn-square btn-sm" onClick={onDelete} aria-label={t.deletePrompt(text)}>
           🗑
         </button>
       )}

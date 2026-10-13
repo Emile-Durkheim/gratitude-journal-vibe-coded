@@ -1,6 +1,9 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_PROMPTS, DEFAULT_WEEKLY_PROMPTS } from './prompts'
+import { defaultPrompts, defaultWeeklyPrompts } from './prompts'
+
+const DEFAULT_PROMPTS = defaultPrompts('en')
+const DEFAULT_WEEKLY_PROMPTS = defaultWeeklyPrompts('en')
 import {
   loadAll,
   makeEntry,

@@ -4,7 +4,9 @@ import InstallCard from './InstallCard'
 import PromptSection from './PromptSection'
 import ReminderCard from './ReminderCard'
 import TopBar, { BackLink } from './TopBar'
-import { DEFAULT_PROMPTS, DEFAULT_WEEKLY_PROMPTS, PROMPT_LIBRARY, WEEKLY_PROMPT_LIBRARY } from './prompts'
+import { LANGS, deviceLang } from './i18n'
+import { defaultPrompts, defaultWeeklyPrompts, promptLibrary, weeklyPromptLibrary } from './prompts'
+import { useLang } from './useLang'
 import { parseExport, toExport, type Entries, type ExportFile, type PersistState, type Settings } from './storage'
 
 type Props = {
@@ -22,6 +24,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
 
 export default function SettingsView(props: Props) {
   const { entries, weeks, settings, persist, onSettingsChange, onImport, onBeforeExport, onRetryPersist } = props
+  const { t, lang, choice, setChoice } = useLang()
   const [message, setMessage] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -40,13 +43,18 @@ export default function SettingsView(props: Props) {
 
   const importData = async (file: File) => {
     try {
-      const data = parseExport(await file.text())
+      let data: ExportFile
+      try {
+        data = parseExport(await file.text(), lang)
+      } catch {
+        throw new Error(t.notABackup)
+      }
       onImport(data)
       const n = Object.keys(data.entries).length
       const w = Object.keys(data.weeks).length
-      setMessage(`Imported ${n} ${n === 1 ? 'day' : 'days'} and ${w} weekly ${w === 1 ? 'review' : 'reviews'}.`)
+      setMessage(t.imported(n, w))
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Import failed.')
+      setMessage(e instanceof Error ? e.message : t.importFailed)
     }
   }
 
@@ -58,31 +66,54 @@ export default function SettingsView(props: Props) {
 
   return (
     <section>
-      <TopBar title="Settings" start={<BackLink href="#/" label="Back to the wreath" />} />
+      <TopBar title={t.settings} start={<BackLink href="#/" label={t.backToWreath} />} />
+
+      <div className="card mb-4 rounded-sm border border-base-300 bg-base-100">
+        <div className="card-body gap-2 p-4">
+          <h2 className="card-title text-xl font-normal italic">{t.language}</h2>
+          <p className="text-sm text-base-content/70">{t.languageIntro}</p>
+          <div className="language-choice join mt-1 self-start" role="radiogroup" aria-label={t.language}>
+            {[null, ...LANGS].map((option) => (
+              <button
+                key={option ?? 'device'}
+                type="button"
+                role="radio"
+                aria-checked={choice === option}
+                className={`btn join-item btn-sm ${choice === option ? 'btn-primary' : 'btn-outline btn-primary'}`}
+                onClick={() => setChoice(option)}
+              >
+                {option ? t.langNames[option] : t.languageAuto(t.langNames[deviceLang()])}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <InstallCard />
 
       <ReminderCard />
 
       <PromptSection
-        title="Your daily prompts"
-        intro="New days use these, in this order. Days you've already written keep their prompts."
+        title={t.dailyPromptsTitle}
+        intro={t.dailyPromptsIntro}
+        libraryTitle={t.dailyLibraryTitle}
         prompts={settings.prompts}
         custom={settings.customPrompts}
-        library={PROMPT_LIBRARY}
-        defaults={DEFAULT_PROMPTS}
+        library={promptLibrary(lang)}
+        defaults={defaultPrompts(lang)}
         onChange={({ prompts, custom }) =>
           onSettingsChange({ ...(prompts && { prompts }), ...(custom && { customPrompts: custom }) })
         }
       />
 
       <PromptSection
-        title="Your weekly review prompts"
-        intro="Shown in the weekly review, which you can open from the calendar or from any Sunday."
+        title={t.weeklyPromptsTitle}
+        intro={t.weeklyPromptsIntro}
+        libraryTitle={t.weeklyLibraryTitle}
         prompts={settings.weeklyPrompts}
         custom={settings.customWeeklyPrompts}
-        library={WEEKLY_PROMPT_LIBRARY}
-        defaults={DEFAULT_WEEKLY_PROMPTS}
+        library={weeklyPromptLibrary(lang)}
+        defaults={defaultWeeklyPrompts(lang)}
         onChange={({ prompts, custom }) =>
           onSettingsChange({ ...(prompts && { weeklyPrompts: prompts }), ...(custom && { customWeeklyPrompts: custom }) })
         }
@@ -90,32 +121,26 @@ export default function SettingsView(props: Props) {
 
       <div className="card mb-4 rounded-sm border border-base-300 bg-base-100">
         <div className="card-body gap-3 p-4">
-          <h2 className="card-title text-xl font-normal italic">Keeping your journal safe</h2>
+          <h2 className="card-title text-xl font-normal italic">{t.safeTitle}</h2>
           <p className="text-sm text-base-content/70">
-            Your journal lives only on this device ({total} {total === 1 ? 'day' : 'days'}, {totalWeeks} weekly{' '}
-            {totalWeeks === 1 ? 'review' : 'reviews'}).{' '}
-            {persist === 'persisted' && 'The browser has agreed not to clear it to free up space.'}
-            {persist === 'not-persisted' &&
-              "The browser hasn't yet agreed to keep it permanently. Installing the app to your home screen usually fixes this."}
-            {persist === 'unsupported' && "This browser can't promise to keep it permanently."}{' '}
-            It's still deleted if you clear this site's data or uninstall the app, so export a backup now and then.
+            {t.livesHere(total, totalWeeks)} {persist === 'persisted' && t.persisted}
+            {persist === 'not-persisted' && t.notPersisted}
+            {persist === 'unsupported' && t.persistUnsupported} {t.stillDeleted}
           </p>
           {persist === 'not-persisted' && (
             <button className="btn btn-ghost btn-sm self-start" onClick={onRetryPersist}>
-              Ask again
+              {t.askAgain}
             </button>
           )}
           <p className="text-sm font-bold">
-            {lastExport === null
-              ? 'No backup yet.'
-              : `Last backup: ${lastExport === 0 ? 'today' : `${lastExport} ${lastExport === 1 ? 'day' : 'days'} ago`}.`}
+            {lastExport === null ? t.noBackup : t.lastBackup(lastExport)}
           </p>
           <div className="grid grid-cols-2 gap-3">
             <button className="btn btn-primary" onClick={exportData}>
-              Export backup
+              {t.exportBackup}
             </button>
             <button className="btn btn-outline btn-primary" onClick={() => fileInput.current?.click()}>
-              Import
+              {t.import}
             </button>
             <input
               ref={fileInput}
@@ -129,7 +154,7 @@ export default function SettingsView(props: Props) {
               }}
             />
           </div>
-          <p className="text-xs text-base-content/60">Importing merges days (newer edits win) and uses the backup's prompts.</p>
+          <p className="text-xs text-base-content/60">{t.importNote}</p>
         </div>
       </div>
 
