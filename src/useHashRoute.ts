@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { flushSync } from 'react-dom'
+import { nextTick, onMounted, onUnmounted, shallowRef, type ShallowRef } from 'vue'
 import { isValidKey, weekEnd } from './dates'
 
 export type Route =
@@ -36,69 +35,73 @@ export function slideDirection(from: Route, to: Route): 'forward' | 'back' | nul
  * link back to the page you came from steps back instead of stacking, so the system back button
  * returns to the overview rather than through every day you visited.
  */
-export function useHashRoute(): Route {
-  const [route, setRoute] = useState(() => parseHash(window.location.hash))
-  useEffect(() => {
-    const norm = (hash: string) => hash || '#/'
-    let currentHash = norm(window.location.hash)
-    let current = parseHash(currentHash)
-    let latest = 0
+export function useHashRoute(): Readonly<ShallowRef<Route>> {
+  const route = shallowRef(parseHash(window.location.hash))
+  const norm = (hash: string) => hash || '#/'
+  let currentHash = norm(window.location.hash)
+  let current = route.value
+  let latest = 0
 
-    const show = (next: Route) => {
-      const direction = slideDirection(current, next)
-      current = next
-      currentHash = norm(window.location.hash)
-      const apply = () => {
-        setRoute(next)
-        window.scrollTo(0, 0)
-      }
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      if (!document.startViewTransition || reduced) return apply()
-      const root = document.documentElement
-      if (direction) root.dataset.slide = direction
-      else delete root.dataset.slide
-      const id = ++latest
-      const t = document.startViewTransition(() => flushSync(apply))
-      // A quick second tap starts a new transition; only the newest one clears the direction.
-      t.finished.finally(() => {
-        if (id === latest) delete root.dataset.slide
-      })
+  const show = (next: Route) => {
+    const direction = slideDirection(current, next)
+    current = next
+    currentHash = norm(window.location.hash)
+    const apply = () => {
+      route.value = next
+      window.scrollTo(0, 0)
     }
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!document.startViewTransition || reduced) return apply()
+    const root = document.documentElement
+    if (direction) root.dataset.slide = direction
+    else delete root.dataset.slide
+    const id = ++latest
+    // The new page has to be in the DOM before the browser takes its "after" snapshot.
+    const t = document.startViewTransition(async () => {
+      apply()
+      await nextTick()
+    })
+    // A quick second tap starts a new transition; only the newest one clears the direction.
+    t.finished.finally(() => {
+      if (id === latest) delete root.dataset.slide
+    })
+  }
 
-    // Back/forward, links outside the app's own, and typed URLs.
-    const onHistory = () => {
-      if (norm(window.location.hash) === currentHash) return
-      show(parseHash(window.location.hash))
+  // Back/forward, links outside the app's own, and typed URLs.
+  const onHistory = () => {
+    if (norm(window.location.hash) === currentHash) return
+    show(parseHash(window.location.hash))
+  }
+
+  const onClick = (e: MouseEvent) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    const a = (e.target as Element).closest?.('a[href^="#/"]')
+    if (!a) return
+    const href = a.getAttribute('href')!
+    e.preventDefault()
+    if (href === currentHash) return
+    const next = parseHash(href)
+    const state = history.state as { prev?: string } | null
+    if (state?.prev === href) {
+      history.back()
+    } else if (current.name === 'day' && next.name === 'day') {
+      history.replaceState(state, '', href)
+      show(next)
+    } else {
+      history.pushState({ prev: currentHash }, '', href)
+      show(next)
     }
+  }
 
-    const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-      const a = (e.target as Element).closest?.('a[href^="#/"]')
-      if (!a) return
-      const href = a.getAttribute('href')!
-      e.preventDefault()
-      if (href === currentHash) return
-      const next = parseHash(href)
-      const state = history.state as { prev?: string } | null
-      if (state?.prev === href) {
-        history.back()
-      } else if (current.name === 'day' && next.name === 'day') {
-        history.replaceState(state, '', href)
-        show(next)
-      } else {
-        history.pushState({ prev: currentHash }, '', href)
-        show(next)
-      }
-    }
-
+  onMounted(() => {
     window.addEventListener('hashchange', onHistory)
     window.addEventListener('popstate', onHistory)
     document.addEventListener('click', onClick)
-    return () => {
-      window.removeEventListener('hashchange', onHistory)
-      window.removeEventListener('popstate', onHistory)
-      document.removeEventListener('click', onClick)
-    }
-  }, [])
+  })
+  onUnmounted(() => {
+    window.removeEventListener('hashchange', onHistory)
+    window.removeEventListener('popstate', onHistory)
+    document.removeEventListener('click', onClick)
+  })
   return route
 }

@@ -1,5 +1,5 @@
 import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
+import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -9,7 +9,7 @@ const base = process.env.BASE_PATH ?? '/gratitude-journal-vibe-coded/'
 export default defineConfig({
   base,
   plugins: [
-    react(),
+    vue(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',

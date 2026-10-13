@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue'
 import {
   loadAll,
   makeEntry,
@@ -22,144 +22,109 @@ import { translatePrompts } from './prompts'
 const SAVE_DELAY_MS = 400
 
 export function useJournal() {
-  const [loaded, setLoaded] = useState(false)
-  const [entries, setEntries] = useState<Entries>({})
-  const [weeks, setWeeks] = useState<Entries>({})
-  const [settings, setSettingsState] = useState<Settings | null>(null)
-  const [saveError, setSaveError] = useState(false)
-  const [persist, setPersist] = useState<PersistState | null>(null)
+  const loaded = ref(false)
+  // Replaced whole on every change rather than mutated, so the views can treat them as plain values.
+  const entries = shallowRef<Entries>({})
+  const weeks = shallowRef<Entries>({})
+  const settings = shallowRef<Settings | null>(null)
+  const saveError = ref(false)
+  const persist = ref<PersistState | null>(null)
   // null follows the device's language
-  const [language, setLanguageState] = useState<Lang | null>(null)
-  const lang: Lang = language ?? deviceLang()
+  const language = ref<Lang | null>(null)
+  const lang = computed<Lang>(() => language.value ?? deviceLang())
   // Days and weeks edited but not yet written, flushed after a short pause or when the page is hidden.
-  const entriesRef = useRef(entries)
-  const weeksRef = useRef(weeks)
-  useEffect(() => {
-    entriesRef.current = entries
-    weeksRef.current = weeks
-  }, [entries, weeks])
-  const pending = useRef(new Map<string, { kind: 'day' | 'week'; date: string; entry: Entry | undefined }>())
-  const timer = useRef<number | undefined>(undefined)
+  const pending = new Map<string, { kind: 'day' | 'week'; date: string; entry: Entry | undefined }>()
+  let timer: number | undefined
 
-  useEffect(() => {
-    loadAll()
-      .then(({ entries, weeks, settings, language }) => {
-        setLanguageState(language)
-        setEntries(entries)
-        setWeeks(weeks)
-        setSettingsState(settings)
-      })
-      .catch(() => setSaveError(true))
-      .finally(() => setLoaded(true))
-    requestPersistence().then(setPersist)
-  }, [])
+  loadAll()
+    .then((all) => {
+      language.value = all.language
+      entries.value = all.entries
+      weeks.value = all.weeks
+      settings.value = all.settings
+    })
+    .catch(() => (saveError.value = true))
+    .finally(() => (loaded.value = true))
+  requestPersistence().then((p) => (persist.value = p))
 
-  const report = useCallback((p: Promise<unknown>) => {
-    p.then(() => setSaveError(false)).catch(() => setSaveError(true))
-  }, [])
+  const report = (p: Promise<unknown>) => {
+    p.then(() => (saveError.value = false)).catch(() => (saveError.value = true))
+  }
 
-  const flush = useCallback(() => {
-    window.clearTimeout(timer.current)
-    const batch = [...pending.current]
-    pending.current.clear()
+  const flush = () => {
+    window.clearTimeout(timer)
+    const batch = [...pending]
+    pending.clear()
     for (const [, { kind, date, entry }] of batch) report(kind === 'day' ? saveEntry(date, entry) : saveWeek(date, entry))
-  }, [report])
+  }
 
-  useEffect(() => {
-    const onVisibility = () => document.visibilityState === 'hidden' && flush()
+  const onVisibility = () => document.visibilityState === 'hidden' && flush()
+  onMounted(() => {
     window.addEventListener('pagehide', flush)
     document.addEventListener('visibilitychange', onVisibility)
-    return () => {
-      window.removeEventListener('pagehide', flush)
-      document.removeEventListener('visibilitychange', onVisibility)
-      flush()
-    }
-  }, [flush])
+  })
+  onUnmounted(() => {
+    window.removeEventListener('pagehide', flush)
+    document.removeEventListener('visibilitychange', onVisibility)
+    flush()
+  })
 
-  const edit = useCallback(
-    (kind: 'day' | 'week', date: string, items: Item[], stampedAt?: number) => {
-      const entry = makeEntry(date, items, Date.now(), stampedAt)
-      const apply = (prev: Entries) => {
-        const next = { ...prev }
-        if (entry) next[date] = entry
-        else delete next[date]
-        return next
-      }
-      // Keep the ref current right away, so an edit straight after a stamp keeps the stamp.
-      if (kind === 'day') {
-        entriesRef.current = apply(entriesRef.current)
-        setEntries(apply)
-      } else setWeeks(apply)
-      pending.current.set(`${kind}:${date}`, { kind, date, entry })
-      window.clearTimeout(timer.current)
-      timer.current = window.setTimeout(flush, SAVE_DELAY_MS)
-    },
-    [flush],
-  )
-  const setItems = useCallback(
-    (date: string, items: Item[]) => edit('day', date, items, entriesRef.current[date]?.stampedAt),
-    [edit],
-  )
+  const edit = (kind: 'day' | 'week', date: string, items: Item[], stampedAt?: number) => {
+    const entry = makeEntry(date, items, Date.now(), stampedAt)
+    const target = kind === 'day' ? entries : weeks
+    const next = { ...target.value }
+    if (entry) next[date] = entry
+    else delete next[date]
+    target.value = next
+    pending.set(`${kind}:${date}`, { kind, date, entry })
+    window.clearTimeout(timer)
+    timer = window.setTimeout(flush, SAVE_DELAY_MS)
+  }
+  const setItems = (date: string, items: Item[]) => edit('day', date, items, entries.value[date]?.stampedAt)
   /** Stamp a day as pressed, then write it straight away. */
-  const stamp = useCallback(
-    (date: string, items: Item[]) => {
-      edit('day', date, items, Date.now())
-      flush()
-    },
-    [edit, flush],
-  )
-  const setWeekItems = useCallback((sunday: string, items: Item[]) => edit('week', sunday, items), [edit])
+  const stamp = (date: string, items: Item[]) => {
+    edit('day', date, items, Date.now())
+    flush()
+  }
+  const setWeekItems = (sunday: string, items: Item[]) => edit('week', sunday, items)
 
-  const updateSettings = useCallback(
-    (patch: Partial<Settings>) => {
-      setSettingsState((prev) => {
-        if (!prev) return prev
-        const next = { ...prev, ...patch }
-        report(saveSettings(next))
-        return next
-      })
-    },
-    [report],
-  )
+  const updateSettings = (patch: Partial<Settings>) => {
+    if (!settings.value) return
+    const next = { ...settings.value, ...patch }
+    settings.value = next
+    report(saveSettings(next))
+  }
 
   /** Switch language; active library prompts switch with it, the user's own stay as written. */
-  const setLanguage = useCallback(
-    (choice: Lang | null) => {
-      const next = choice ?? deviceLang()
-      setLanguageState(choice)
-      report(saveLanguage(choice))
-      setSettingsState((prev) => {
-        if (!prev) return prev
-        const translated = {
-          ...prev,
-          prompts: translatePrompts(prev.prompts, next),
-          weeklyPrompts: translatePrompts(prev.weeklyPrompts, next),
-        }
-        report(saveSettings(translated))
-        return translated
-      })
-    },
-    [report],
-  )
+  const setLanguage = (choice: Lang | null) => {
+    const next = choice ?? deviceLang()
+    language.value = choice
+    report(saveLanguage(choice))
+    const prev = settings.value
+    if (!prev) return
+    const translated = {
+      ...prev,
+      prompts: translatePrompts(prev.prompts, next),
+      weeklyPrompts: translatePrompts(prev.weeklyPrompts, next),
+    }
+    settings.value = translated
+    report(saveSettings(translated))
+  }
 
-  const importFile = useCallback(
-    (file: ExportFile) => {
-      flush()
-      // Merge outside the state updaters so the writes happen once, not twice under StrictMode.
-      const mergedDays = mergeEntries(entriesRef.current, file.entries)
-      const mergedWeeks = mergeEntries(weeksRef.current, file.weeks)
-      setEntries(mergedDays)
-      setWeeks(mergedWeeks)
-      report(saveEntries(mergedDays, mergedWeeks))
-      setSettingsState(file.settings)
-      report(saveSettings(file.settings))
-    },
-    [flush, report],
-  )
+  const importFile = (file: ExportFile) => {
+    flush()
+    const mergedDays = mergeEntries(entries.value, file.entries)
+    const mergedWeeks = mergeEntries(weeks.value, file.weeks)
+    entries.value = mergedDays
+    weeks.value = mergedWeeks
+    report(saveEntries(mergedDays, mergedWeeks))
+    settings.value = file.settings
+    report(saveSettings(file.settings))
+  }
 
-  const retryPersist = useCallback(() => {
-    requestPersistence().then(setPersist)
-  }, [])
+  const retryPersist = () => {
+    requestPersistence().then((p) => (persist.value = p))
+  }
 
   return { loaded, lang, language, setLanguage, entries, weeks, settings, saveError, persist, setItems, stamp, setWeekItems, updateSettings, importFile, flush, retryPersist }
 }

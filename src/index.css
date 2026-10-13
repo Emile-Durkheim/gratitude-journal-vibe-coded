@@ -117,7 +117,7 @@ body {
 }
 
 /* ---------- Motion ---------- */
-/* Petals spring open via Framer Motion (src/flower.tsx). Everything that keeps moving animates only
+/* Petals spring open via motion-v (src/FlowerG.vue). Everything that keeps moving animates only
    transform or opacity on an HTML element, so the compositor keeps it running while the page scrolls. */
 
 .leaf { transform-origin: 0 0; transform-box: view-box; animation: leaf-in 0.8s ease-out both; animation-delay: var(--d, 0ms); }
