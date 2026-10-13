@@ -13,6 +13,8 @@ const props = defineProps<{ filled: number; total: number; stamped: boolean }>()
 const emit = defineEmits<{
   /** Called with the stamp's centre on screen, where the page's bloom starts. */
   stamp: [origin: { x: number; y: number }]
+  /** Pressing a pressed day again takes the stamp off. */
+  unstamp: []
 }>()
 const t = useT()
 
@@ -26,7 +28,10 @@ const label = computed(() =>
   props.stamped ? t.value.stampPressed : props.filled === 0 ? t.value.stampWrite : full.value ? t.value.stampFull : t.value.stampPartial,
 )
 
+const pressable = computed(() => ready.value || props.stamped)
+
 const onClick = (e: MouseEvent) => {
+  if (props.stamped) return emit('unstamp')
   const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
   emit('stamp', { x: r.left + r.width / 2, y: r.top + r.height / 2 })
 }
@@ -37,8 +42,8 @@ const onClick = (e: MouseEvent) => {
     <motion.button
       type="button"
       :class="['stamp', { invite: full, stamped }]"
-      :disabled="!ready"
-      :while-press="ready ? { scale: 0.86 } : undefined"
+      :disabled="!pressable"
+      :while-press="pressable ? { scale: 0.86 } : undefined"
       :aria-label="stamped ? t.stampDoneLabel : t.stampLabel(filled, total)"
       :aria-pressed="stamped"
       @click="onClick"

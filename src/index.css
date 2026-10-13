@@ -100,6 +100,7 @@ body {
   overflow: hidden;
   display: block;
 }
+.ruled:read-only { cursor: default; }
 .ruled::placeholder { color: oklch(55% 0.02 100 / 0.5); }
 
 .calendar { border-collapse: separate; border-spacing: 4px; table-layout: fixed; }

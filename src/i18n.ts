@@ -80,7 +80,7 @@ const en = {
   stampWrite: 'Write to press',
   stampFull: 'Press this day',
   stampPartial: 'Press it as it is',
-  stampDoneLabel: 'This day is pressed',
+  stampDoneLabel: 'This day is pressed. Press again to reopen it',
   stampLabel: (filled: number, total: number) => `Press this day (${filled} of ${total} answered)`,
 
   // week review
@@ -207,7 +207,7 @@ const de: Strings = {
   stampWrite: 'Erst schreiben',
   stampFull: 'Diesen Tag pressen',
   stampPartial: 'So pressen, wie er ist',
-  stampDoneLabel: 'Dieser Tag ist gepresst',
+  stampDoneLabel: 'Dieser Tag ist gepresst. Noch einmal drücken, um ihn wieder zu öffnen',
   stampLabel: (filled, total) => `Diesen Tag pressen (${filled} von ${total} beantwortet)`,
 
   notStarted: 'Diese Woche hat noch nicht begonnen.',

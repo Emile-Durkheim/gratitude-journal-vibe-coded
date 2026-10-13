@@ -60,6 +60,7 @@ const backFromWeek = (sunday: string) => {
           :current-prompts="settings.prompts"
           @change="journal.setItems"
           @stamp="journal.stamp"
+          @unstamp="journal.unstamp"
           @back="backFromDay(route.date)"
         />
         <WeekView

@@ -86,6 +86,11 @@ export function useJournal() {
     edit('day', date, items, Date.now())
     flush()
   }
+  /** Take the stamp off again, so the day can be edited; written straight away too. */
+  const unstamp = (date: string, items: Item[]) => {
+    edit('day', date, items)
+    flush()
+  }
   const setWeekItems = (sunday: string, items: Item[]) => edit('week', sunday, items)
 
   const updateSettings = (patch: Partial<Settings>) => {
@@ -126,5 +131,5 @@ export function useJournal() {
     requestPersistence().then((p) => (persist.value = p))
   }
 
-  return { loaded, lang, language, setLanguage, entries, weeks, settings, saveError, persist, setItems, stamp, setWeekItems, updateSettings, importFile, flush, retryPersist }
+  return { loaded, lang, language, setLanguage, entries, weeks, settings, saveError, persist, setItems, stamp, unstamp, setWeekItems, updateSettings, importFile, flush, retryPersist }
 }
