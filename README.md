@@ -22,6 +22,17 @@ npm test        # unit tests
 npm run build   # production build in dist/
 ```
 
+## Project layout
+
+- `src/main.ts`, `src/App.vue`: entry point and the router shell; `src/sw.ts` is the service worker.
+- `src/views/`: one component per screen (wreath, day, week, calendar, settings, prompt library, onboarding).
+- `src/components/`: pieces used by those screens, grouped by where they appear (`flower/`, `day/`, `wreath/`, `calendar/`, `settings/`, `onboarding/`, and shared `ui/`).
+- `src/composables/`: Vue composables (`useJournal`, `useHashRoute`, `useLang`, `useKeyboardShift`).
+- `src/lib/`: plain TypeScript logic (dates, storage, reminders, flower maths, install helpers).
+- `src/content/`: translations, prompts and quotes.
+
+Tests sit next to the file they cover.
+
 ## Deployment
 
 Every push to `main` builds and deploys to GitHub Pages via `.github/workflows/deploy.yml`. In the repo's **Settings → Pages**, the source must be **GitHub Actions**.

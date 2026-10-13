@@ -1,0 +1,112 @@
+import 'fake-indexeddb/auto'
+import { describe, expect, it } from 'vitest'
+import { defaultPrompts, defaultWeeklyPrompts } from '../content/prompts'
+
+const DEFAULT_PROMPTS = defaultPrompts('en')
+const DEFAULT_WEEKLY_PROMPTS = defaultWeeklyPrompts('en')
+import {
+  loadAll,
+  makeEntry,
+  mergeEntries,
+  parseExport,
+  sanitizeSettings,
+  saveEntry,
+  saveOnboarded,
+  saveSettings,
+  saveWeek,
+  toExport,
+  type Entries,
+  type Item,
+} from './storage'
+
+const items = (...answers: string[]): Item[] => answers.map((answer, i) => ({ prompt: `p${i}`, answer }))
+
+describe('makeEntry', () => {
+  it('keeps prompts with answers, for any number of prompts', () => {
+    const e = makeEntry('2026-10-11', items('a', '', 'c', 'd', 'e'), 1)
+    expect(e?.items).toHaveLength(5)
+    expect(e?.items[0]).toEqual({ prompt: 'p0', answer: 'a' })
+  })
+
+  it('returns nothing for a blank day', () => {
+    expect(makeEntry('2026-10-11', items(' ', ''), 1)).toBeUndefined()
+  })
+})
+
+describe('IndexedDB storage', () => {
+  // runs first, while the store is still empty
+  it('remembers that the introduction is done', async () => {
+    expect((await loadAll()).onboarded).toBe(false)
+    await saveOnboarded()
+    expect((await loadAll()).onboarded).toBe(true)
+  })
+
+  it('saves, loads and deletes days and settings', async () => {
+    await saveEntry('2026-10-11', makeEntry('2026-10-11', items('x'), 1))
+    await saveEntry('2026-10-12', makeEntry('2026-10-12', items('y'), 2))
+    await saveWeek('2026-10-11', makeEntry('2026-10-11', items('weekly'), 3))
+    const settings = { prompts: ['one', 'two'], customPrompts: ['two'], weeklyPrompts: ['w'], customWeeklyPrompts: [], lastExportAt: 5 }
+    await saveSettings(settings)
+    let all = await loadAll()
+    expect(Object.keys(all.entries).sort()).toEqual(['2026-10-11', '2026-10-12'])
+    expect(Object.keys(all.weeks)).toEqual(['2026-10-11'])
+    expect(all.weeks['2026-10-11'].items[0].answer).toBe('weekly')
+    expect(all.settings).toEqual(settings)
+    await saveEntry('2026-10-12', undefined)
+    all = await loadAll()
+    expect(Object.keys(all.entries)).toEqual(['2026-10-11'])
+    await saveWeek('2026-10-11', undefined)
+    all = await loadAll()
+    expect(all.weeks).toEqual({})
+  })
+})
+
+describe('mergeEntries', () => {
+  it('keeps the newer entry per day', () => {
+    const a: Entries = { '2026-10-01': makeEntry('2026-10-01', items('old'), 1)! }
+    const b: Entries = {
+      '2026-10-01': makeEntry('2026-10-01', items('new'), 2)!,
+      '2026-10-02': makeEntry('2026-10-02', items('other'), 1)!,
+    }
+    expect(mergeEntries(a, b)['2026-10-01'].items[0].answer).toBe('new')
+    expect(mergeEntries(b, a)['2026-10-01'].items[0].answer).toBe('new')
+    expect(mergeEntries(a, b)['2026-10-02'].items[0].answer).toBe('other')
+  })
+})
+
+describe('export / import', () => {
+  it('round-trips', () => {
+    const entries = { '2026-10-11': makeEntry('2026-10-11', items('x', 'y'), 5)! }
+    const weeks = { '2026-10-11': makeEntry('2026-10-11', items('w'), 6)! }
+    const settings = { prompts: ['a'], customPrompts: ['a'], weeklyPrompts: ['b'], customWeeklyPrompts: ['b'], lastExportAt: null }
+    const file = parseExport(JSON.stringify(toExport(entries, settings, weeks)))
+    expect(file.entries).toEqual(entries)
+    expect(file.weeks).toEqual(weeks)
+    expect(file.settings).toEqual(settings)
+  })
+
+  it('accepts backups made before weekly reviews existed', () => {
+    const file = parseExport(JSON.stringify({ version: 2, settings: { prompts: ['a'] }, entries: {} }))
+    expect(file.weeks).toEqual({})
+    expect(file.settings.weeklyPrompts).toEqual(DEFAULT_WEEKLY_PROMPTS)
+  })
+
+  it('rejects other files', () => {
+    expect(() => parseExport('{"foo":1}')).toThrow()
+    expect(() => parseExport('not json')).toThrow()
+  })
+
+  it('drops malformed entries', () => {
+    const file = parseExport(JSON.stringify({ version: 2, entries: { '2026-10-11': { date: '2026-10-11' } } }))
+    expect(file.entries).toEqual({})
+    expect(file.settings.prompts).toEqual(DEFAULT_PROMPTS)
+  })
+})
+
+describe('sanitizeSettings', () => {
+  it('falls back to defaults and never allows zero prompts', () => {
+    expect(sanitizeSettings(null).prompts).toEqual(DEFAULT_PROMPTS)
+    expect(sanitizeSettings({ prompts: [] }).prompts).toEqual(DEFAULT_PROMPTS)
+    expect(sanitizeSettings({ prompts: ['a', 'b', 'c', 'd'] }).prompts).toHaveLength(4)
+  })
+})
