@@ -6,7 +6,7 @@ import '@fontsource/caveat/latin-400.css'
 import '@fontsource/caveat/latin-600.css'
 import App from './App.vue'
 import './index.css'
-import { scheduleReminder } from './reminderClient'
+import { scheduleReminder } from './lib/reminderClient'
 
 createApp(App).mount('#root')
 

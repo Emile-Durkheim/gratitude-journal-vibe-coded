@@ -2,7 +2,7 @@
 import { clientsClaim } from 'workbox-core'
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
-import { PERIODIC_SYNC_TAG, remindIfDue } from './reminder'
+import { PERIODIC_SYNC_TAG, remindIfDue } from './lib/reminder'
 
 declare const self: ServiceWorkerGlobalScope
 
