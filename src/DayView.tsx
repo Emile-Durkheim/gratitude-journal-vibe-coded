@@ -1,3 +1,4 @@
+import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { flowerColor } from './flower'
 import PetalDrift from './PetalDrift'
@@ -6,6 +7,7 @@ import StampButton from './StampButton'
 import TopBar, { BackLink } from './TopBar'
 import WeekStrip from './WeekStrip'
 import { useKeyboardShift } from './useKeyboardShift'
+import { quoteFor } from './quotes'
 import { formatLong, fromKey, isSunday, toKey, todayKey } from './dates'
 import type { Entries, Entry, Item } from './storage'
 
@@ -35,28 +37,33 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
   }
 
   const filled = items.filter((i) => i.answer.trim()).length
-  const complete = filled === items.length
 
   const sticky = useRef<HTMLDivElement>(null)
   useKeyboardShift(sticky)
 
   // Stamping is the moment to celebrate; it stays stamped while the day has answers.
   const stamped = !!entry?.stampedAt && filled > 0
-  // After a fresh stamp the seal lands first; only then does the page bloom and petals start to fall.
-  const [bloomed, setBloomed] = useState(stamped)
-  const stampDay = () => {
+  // After a fresh stamp the seal lands first; then the bloom spreads out from the stamp across the
+  // page and petals start to fall. A day that was already stamped opens bloomed.
+  const [bloom, setBloom] = useState<'none' | 'spreading' | 'done'>(stamped ? 'done' : 'none')
+  const [origin, setOrigin] = useState({ x: 0, y: 0 })
+  const stampDay = (from: { x: number; y: number }) => {
     onStamp(date, items)
     navigator.vibrate?.(25)
-    window.setTimeout(() => setBloomed(true), 750)
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    setOrigin(from)
+    window.setTimeout(() => setBloom(reduced ? 'done' : 'spreading'), 320)
   }
-  const blooming = stamped && bloomed
+  const blooming = stamped && bloom !== 'none'
   useEffect(() => {
-    if (!blooming) return
+    if (!stamped || bloom !== 'done') return
     const root = document.documentElement
     root.style.setProperty('--bloom', flowerColor(date))
     root.classList.add('bloomed')
     return () => root.classList.remove('bloomed')
-  }, [blooming, date])
+  }, [stamped, bloom, date])
+
+  const quote = quoteFor(date)
 
   const neighbour = (delta: number) => {
     const d = fromKey(date)
@@ -86,22 +93,33 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
         <span className="text-6xl leading-none">{Number(date.slice(8))}</span>
         <span className="grow">
           <span className="block text-lg italic leading-tight opacity-80">{formatLong(date)}</span>
-          {!future &&
-            (stamped ? (
-              <span key="done" className="petal-count pressed-line block text-sm italic text-rose">
-                ✿ Stamped. This day is pressed.
+          {/* a quote for the day, in ink until the day is stamped, then in rose with the flower */}
+          <span className={`day-quote mt-1 block text-sm italic leading-snug ${stamped ? 'pressed' : ''}`}>
+            {stamped && (
+              <span className="mr-1 not-italic" aria-hidden="true">
+                ✿
               </span>
-            ) : complete ? (
-              <span key="full" className="petal-count block text-sm italic text-rose">
-                Every petal is in. Stamp it below.
-              </span>
-            ) : (
-              <span className="petal-count block text-sm italic opacity-60">
-                {filled} of {items.length} petals
-              </span>
-            ))}
+            )}
+            “{quote.text}” <span className="whitespace-nowrap not-italic opacity-75">— {quote.by}</span>
+          </span>
         </span>
       </div>
+      {stamped && bloom === 'spreading' && (
+        <div
+          className="bloom-wave"
+          aria-hidden="true"
+          style={
+            {
+              '--bloom': flowerColor(date),
+              '--x': `${origin.x}px`,
+              '--y': `${origin.y}px`,
+              // far enough to reach the furthest corner of the screen
+              '--max-r': `${Math.hypot(Math.max(origin.x, window.innerWidth - origin.x), Math.max(origin.y, window.innerHeight - origin.y)) + 80}px`,
+            } as React.CSSProperties
+          }
+          onAnimationEnd={() => setBloom('done')}
+        />
+      )}
       {blooming && <PetalDrift color={flowerColor(date)} />}
 
       {future ? (
@@ -113,7 +131,7 @@ export default function DayView({ date, entry, entries, hasWeekReview, currentPr
             <StampButton filled={filled} total={items.length} stamped={stamped} onStamp={stampDay} />
           </div>
           <p className="mt-5 text-center text-sm italic opacity-60">
-            Saved automatically on this device. <a className="link text-rose" href="#/settings">Change prompts</a>
+            <a className="link text-rose" href="#/settings">Change prompts</a>
           </p>
         </form>
       )}

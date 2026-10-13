@@ -4,7 +4,8 @@ type Props = {
   filled: number
   total: number
   stamped: boolean
-  onStamp: () => void
+  /** Called with the stamp's centre on screen, where the page's bloom starts. */
+  onStamp: (origin: { x: number; y: number }) => void
 }
 
 const R = 44
@@ -26,7 +27,10 @@ export default function StampButton({ filled, total, stamped, onStamp }: Props) 
         type="button"
         className={`stamp ${full ? 'invite' : ''} ${stamped ? 'stamped' : ''}`}
         disabled={!ready}
-        onClick={onStamp}
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect()
+          onStamp({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
+        }}
         whileTap={ready ? { scale: 0.86 } : undefined}
         aria-label={stamped ? 'This day is pressed' : `Press this day (${filled} of ${total} answered)`}
         aria-pressed={stamped}

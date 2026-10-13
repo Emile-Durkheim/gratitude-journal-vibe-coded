@@ -77,7 +77,7 @@ export default function WeekView({ sunday, entry, days, currentPrompts, onChange
           <form onSubmit={(e) => e.preventDefault()}>
             <PromptFields items={items} rows={4} onAnswer={update} />
             <p className="mt-6 text-center text-sm italic opacity-60">
-              Saved automatically on this device. <a className="link text-rose" href="#/settings">Change weekly prompts</a>
+              <a className="link text-rose" href="#/settings">Change weekly prompts</a>
             </p>
           </form>
         </>

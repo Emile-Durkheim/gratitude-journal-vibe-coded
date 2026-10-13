@@ -57,12 +57,18 @@
   -webkit-text-size-adjust: 100%;
 }
 
-body {
-  min-height: 100vh;
+/* The paper lives on the root rather than the body, so the stamp's bloom wave (z-index -1) can
+   spread between the paper and the page's content. */
+html:root {
   background-color: var(--color-page);
-  transition: background-color 2.5s ease;
+  transition: background-color 0.4s ease;
   background-image: radial-gradient(rgba(120, 90, 40, 0.05) 1px, transparent 1px);
   background-size: 5px 5px;
+}
+
+body {
+  min-height: 100vh;
+  background: transparent;
   font-size: 18px;
 }
 
@@ -151,8 +157,6 @@ body {
   to { opacity: 1; transform: none; filter: none; }
 }
 
-/* The Three.js petal shower once a day is complete. */
-.petal-shower { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 30; }
 
 /* ---------- Day page header ---------- */
 
@@ -165,7 +169,7 @@ body {
   margin: 0 -1.25rem;
   padding: max(0.25rem, env(safe-area-inset-top)) 1.25rem 0.35rem;
   background-color: var(--color-page);
-  transition: background-color 2.5s ease;
+  transition: background-color 0.4s ease;
   border-bottom: 1px solid oklch(42% 0.03 140 / 0.15);
   transform: translateY(var(--kb-shift, 0px));
 }
@@ -179,6 +183,29 @@ a.strip-day:hover { background: oklch(58% 0.11 5 / 0.07); }
 
 /* Once a day is stamped the paper warms ever so slightly towards its flower, as if it bloomed. */
 html.bloomed { --color-page: color-mix(in oklch, var(--color-paper) 90%, var(--bloom)); }
+/* the wave below has already coloured the page, so take the new colour without a second fade */
+html.bloomed:root,
+html.bloomed .day-sticky { transition: none; }
+
+/* The bloom spreads from the stamp as a widening circle, just behind the page's content. */
+@property --wave-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+.bloom-wave {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: color-mix(in oklch, var(--color-paper) 90%, var(--bloom));
+  background-image: radial-gradient(rgba(120, 90, 40, 0.05) 1px, transparent 1px);
+  background-size: 5px 5px;
+  -webkit-mask-image: radial-gradient(circle at var(--x) var(--y), #000 var(--wave-r), transparent calc(var(--wave-r) + 70px));
+  mask-image: radial-gradient(circle at var(--x) var(--y), #000 var(--wave-r), transparent calc(var(--wave-r) + 70px));
+  animation: bloom-wave 0.9s cubic-bezier(0.3, 0.5, 0.25, 1) forwards;
+}
+@keyframes bloom-wave { to { --wave-r: var(--max-r); } }
 
 /* A stamped day keeps a few faint petals falling in its flower's colour. */
 .petal-drift { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; animation: drift-in 2s ease-out both; }
@@ -194,6 +221,9 @@ html.bloomed { --color-page: color-mix(in oklch, var(--color-paper) 90%, var(--b
   50% { transform: translateX(var(--drift)) rotate(25deg); }
 }
 @keyframes drift-turn { to { transform: rotateY(65deg); } }
+
+.day-quote { color: oklch(32% 0.03 140 / 0.62); transition: color 0.8s ease; }
+.day-quote.pressed { color: var(--color-rose); }
 
 /* ---------- Stamp button ---------- */
 
@@ -234,6 +264,6 @@ html[data-slide='back']::view-transition-new(root) { z-index: -1; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .petal-shower, .petal-drift { display: none; }
+  .petal-drift { display: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
