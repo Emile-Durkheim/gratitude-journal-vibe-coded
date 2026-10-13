@@ -3,6 +3,7 @@ import { computed, provide, ref, watch } from 'vue'
 import { MotionConfig } from 'motion-v'
 import CalendarView from './CalendarView.vue'
 import DayView from './DayView.vue'
+import PromptLibraryView from './PromptLibraryView.vue'
 import SettingsView from './SettingsView.vue'
 import WeekView from './WeekView.vue'
 import WreathView from './WreathView.vue'
@@ -60,6 +61,7 @@ const backFromWeek = (sunday: string) => {
           :current-prompts="settings.prompts"
           @change="journal.setItems"
           @stamp="journal.stamp"
+          @unstamp="journal.unstamp"
           @back="backFromDay(route.date)"
         />
         <WeekView
@@ -82,6 +84,13 @@ const backFromWeek = (sunday: string) => {
           @import="journal.importFile"
           @before-export="journal.flush"
           @retry-persist="journal.retryPersist"
+        />
+        <PromptLibraryView
+          v-else-if="route.name === 'prompts'"
+          :key="route.kind"
+          :kind="route.kind"
+          :settings="settings"
+          @settings-change="journal.updateSettings"
         />
         <CalendarView
           v-else-if="route.name === 'calendar'"

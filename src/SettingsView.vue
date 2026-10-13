@@ -7,7 +7,6 @@ import ReminderCard from './ReminderCard.vue'
 import TopBar from './TopBar.vue'
 import { todayKey } from './dates'
 import { LANGS, deviceLang, type Lang } from './i18n'
-import { defaultPrompts, defaultWeeklyPrompts, promptLibrary, weeklyPromptLibrary } from './prompts'
 import { useLang } from './useLang'
 import { parseExport, toExport, type Entries, type ExportFile, type PersistState, type Settings } from './storage'
 
@@ -111,25 +110,19 @@ const lastExport = computed(() =>
     <PromptSection
       :title="t.dailyPromptsTitle"
       :intro="t.dailyPromptsIntro"
-      :library-title="t.dailyLibraryTitle"
       :prompts="settings.prompts"
-      :custom="settings.customPrompts"
-      :library="promptLibrary(lang)"
-      :defaults="defaultPrompts(lang)"
-      @change="({ prompts, custom }) => emit('settingsChange', { ...(prompts && { prompts }), ...(custom && { customPrompts: custom }) })"
+      :add-label="t.addPrompts"
+      library-href="#/prompts/daily"
+      @change="(prompts) => emit('settingsChange', { prompts })"
     />
 
     <PromptSection
       :title="t.weeklyPromptsTitle"
       :intro="t.weeklyPromptsIntro"
-      :library-title="t.weeklyLibraryTitle"
       :prompts="settings.weeklyPrompts"
-      :custom="settings.customWeeklyPrompts"
-      :library="weeklyPromptLibrary(lang)"
-      :defaults="defaultWeeklyPrompts(lang)"
-      @change="
-        ({ prompts, custom }) => emit('settingsChange', { ...(prompts && { weeklyPrompts: prompts }), ...(custom && { customWeeklyPrompts: custom }) })
-      "
+      :add-label="t.addWeeklyPrompts"
+      library-href="#/prompts/weekly"
+      @change="(prompts) => emit('settingsChange', { weeklyPrompts: prompts })"
     />
 
     <div class="card mb-4 rounded-sm border border-base-300 bg-base-100">

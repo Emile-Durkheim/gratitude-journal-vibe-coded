@@ -100,6 +100,22 @@ body {
   overflow: hidden;
   display: block;
 }
+.ruled:read-only { cursor: default; }
+
+/* Active prompts in settings: dragged by the grip, the others slide aside to make room. */
+.prompt-row { transition: transform 0.18s ease; }
+.prompt-row.lifted { box-shadow: 0 6px 18px oklch(30% 0.03 80 / 0.18); background: var(--color-base-100); }
+.grip { touch-action: none; cursor: grab; color: oklch(55% 0.02 100); }
+.active-list.dragging, .active-list.dragging .grip { cursor: grabbing; user-select: none; }
+.skeleton-row { transition: background-color 0.15s, color 0.15s; }
+.skeleton-row:hover, .skeleton-row:active { background: var(--color-base-200); color: var(--color-base-content); }
+
+/* Wreath slots: no browser tap highlight (on SVG it outlines each leaf separately); the whole round
+   slot tints instead while pressed. */
+.slot { -webkit-tap-highlight-color: transparent; outline: none; }
+.slot > .hit { transition: fill 0.15s; }
+.slot:active > .hit { fill: oklch(58% 0.11 5 / 0.1); }
+.slot:focus-visible > .hit { stroke: var(--color-rose); stroke-width: 1.4; stroke-dasharray: 3 3; }
 .ruled::placeholder { color: oklch(55% 0.02 100 / 0.5); }
 
 .calendar { border-collapse: separate; border-spacing: 4px; table-layout: fixed; }

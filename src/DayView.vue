@@ -23,6 +23,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   change: [date: string, items: Item[]]
   stamp: [date: string, items: Item[]]
+  unstamp: [date: string, items: Item[]]
   back: []
 }>()
 const lang = useLang()
@@ -53,12 +54,19 @@ const stamped = computed(() => !!props.entry?.stampedAt && filled.value > 0)
 // page and petals start to fall. A day that was already stamped opens bloomed.
 const bloom = ref<'none' | 'spreading' | 'done'>(stamped.value ? 'done' : 'none')
 const origin = ref({ x: 0, y: 0 })
+let bloomTimer: number | undefined
 const stampDay = (from: { x: number; y: number }) => {
   emit('stamp', date, items.value)
   navigator.vibrate?.(25)
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   origin.value = from
-  window.setTimeout(() => (bloom.value = reduced ? 'done' : 'spreading'), 320)
+  bloomTimer = window.setTimeout(() => (bloom.value = reduced ? 'done' : 'spreading'), 320)
+}
+// Pressing again takes the stamp off and opens the answers for editing.
+const unstampDay = () => {
+  emit('unstamp', date, items.value)
+  window.clearTimeout(bloomTimer)
+  bloom.value = 'none'
 }
 const blooming = computed(() => stamped.value && bloom.value !== 'none')
 const color = flowerColor(date)
@@ -123,9 +131,10 @@ const next = neighbour(1)
 
     <p v-if="future" class="empty my-12 text-center italic opacity-60">{{ t.notYetHappened }}</p>
     <form v-else class="mt-3" @submit.prevent>
-      <PromptFields :items="items" :rows="3" @answer="update" />
+      <!-- a pressed day is kept as it was; unpress it to write again -->
+      <PromptFields :items="items" :rows="3" :locked="stamped" @answer="update" />
       <div class="mt-8">
-        <StampButton :filled="filled" :total="items.length" :stamped="stamped" @stamp="stampDay" />
+        <StampButton :filled="filled" :total="items.length" :stamped="stamped" @stamp="stampDay" @unstamp="unstampDay" />
       </div>
       <p class="mt-5 text-center text-sm italic opacity-60">
         <a class="link text-rose" href="#/settings">{{ t.changePrompts }}</a>
