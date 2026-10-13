@@ -7,6 +7,7 @@ export type Route =
   | { name: 'day'; date: string }
   | { name: 'week'; sunday: string }
   | { name: 'settings' }
+  | { name: 'welcome' }
 
 export function parseHash(hash: string): Route {
   const path = hash.replace(/^#/, '')
@@ -15,6 +16,7 @@ export function parseHash(hash: string): Route {
   const week = path.match(/^\/week\/(\d{4}-\d{2}-\d{2})$/)
   if (week && isValidKey(week[1])) return { name: 'week', sunday: weekEnd(week[1]) }
   if (path === '/settings') return { name: 'settings' }
+  if (path === '/welcome') return { name: 'welcome' }
   if (path === '/calendar') return { name: 'calendar' }
   return { name: 'wreath' }
 }

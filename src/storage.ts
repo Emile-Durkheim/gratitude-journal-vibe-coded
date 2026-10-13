@@ -41,6 +41,8 @@ const ENTRY_PREFIX = 'entry:'
 const WEEK_PREFIX = 'week:'
 /** The chosen language stays with the device, like the reminder: backups don't carry it. */
 const LANGUAGE_KEY = 'language'
+/** Set once the first-run introduction has been finished or skipped. Also per device. */
+const ONBOARDED_KEY = 'onboarded'
 
 function isStringArray(x: unknown): x is string[] {
   return Array.isArray(x) && x.every((s) => typeof s === 'string')
@@ -84,14 +86,16 @@ export function sanitizeSettings(x: unknown, lang: Lang = 'en'): Settings {
   }
 }
 
-export async function loadAll(): Promise<{ entries: Entries; weeks: Entries; settings: Settings; language: Lang | null }> {
+export async function loadAll(): Promise<{ entries: Entries; weeks: Entries; settings: Settings; language: Lang | null; onboarded: boolean }> {
   const rows = await idbEntries<string, unknown>(store)
   const days: Record<string, unknown> = {}
   const weeks: Record<string, unknown> = {}
   let settings: unknown = null
   let language: Lang | null = null
+  let onboarded = false
   for (const [key, value] of rows) {
     if (key === SETTINGS_KEY) settings = value
+    else if (key === ONBOARDED_KEY) onboarded = value === true
     else if (key === LANGUAGE_KEY && isLang(value)) language = value
     else if (key.startsWith(ENTRY_PREFIX)) days[key.slice(ENTRY_PREFIX.length)] = value
     else if (key.startsWith(WEEK_PREFIX)) weeks[key.slice(WEEK_PREFIX.length)] = value
@@ -101,6 +105,8 @@ export async function loadAll(): Promise<{ entries: Entries; weeks: Entries; set
     weeks: sanitizeEntries(weeks),
     settings: sanitizeSettings(settings, language ?? deviceLang()),
     language,
+    // Anyone who used the journal before the introduction existed has already found their way.
+    onboarded: onboarded || rows.some(([key]) => key.startsWith(ENTRY_PREFIX) || key.startsWith(WEEK_PREFIX)),
   }
 }
 
@@ -135,6 +141,10 @@ export async function saveLanguage(language: Lang | null): Promise<void> {
 export async function loadLanguage(): Promise<Lang | null> {
   const value = await get(LANGUAGE_KEY, store)
   return isLang(value) ? value : null
+}
+
+export async function saveOnboarded(): Promise<void> {
+  await set(ONBOARDED_KEY, true, store)
 }
 
 export async function saveSettings(settings: Settings): Promise<void> {

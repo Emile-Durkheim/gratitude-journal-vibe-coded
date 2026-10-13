@@ -244,6 +244,48 @@ html.bloomed .day-sticky { transition: none; }
 .stamp .seal-inner { fill: none; stroke: oklch(98% 0.01 85 / 0.7); stroke-width: 1; stroke-dasharray: 2 2; }
 .stamp.stamped .seal-flower { fill: oklch(98% 0.01 85 / 0.25); stroke: oklch(98% 0.01 85 / 0.95); }
 
+/* ---------- First-run introduction ---------- */
+
+.welcome-flower { display: inline-block; }
+/* a short ink rule with a flower in the middle, like a printer's ornament */
+.welcome-rule { display: flex; align-items: center; gap: 0.6rem; width: 9rem; color: var(--color-rose); font-size: 0.9rem; }
+.welcome-rule::before,
+.welcome-rule::after { content: ''; flex: 1; border-top: 1px solid oklch(32% 0.03 140 / 0.35); }
+.welcome-lead::first-letter {
+  float: left;
+  font-size: 3.6rem;
+  line-height: 0.85;
+  padding: 0.3rem 0.45rem 0 0;
+  font-style: italic;
+  color: var(--color-rose);
+}
+.welcome-note { min-height: 0; text-align: center; padding: 0 0.5rem; }
+.ob-title { font-size: 1.9rem; font-style: italic; line-height: 1.15; margin-top: 0.75rem; }
+.ob-body { margin-top: 0.4rem; color: oklch(32% 0.03 140 / 0.75); line-height: 1.5; }
+.ob-choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-box);
+  border: 1px solid var(--color-base-300);
+  background: var(--color-base-100);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.ob-choice.on { border-color: oklch(58% 0.11 5 / 0.6); background: oklch(58% 0.11 5 / 0.08); box-shadow: inset 3px 0 0 var(--color-rose); }
+/* Next stays at the foot of the screen on long steps */
+.ob-footer {
+  position: sticky;
+  bottom: 0;
+  margin: 1rem -1.25rem 0;
+  padding: 0.75rem 1.25rem max(0.75rem, env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--color-page) 0.75rem);
+}
+.ob-forward-enter-active, .ob-forward-leave-active,
+.ob-back-enter-active, .ob-back-leave-active { transition: opacity 0.22s ease, transform 0.22s ease; }
+.ob-forward-enter-from, .ob-back-leave-to { opacity: 0; transform: translateX(24px); }
+.ob-forward-leave-to, .ob-back-enter-from { opacity: 0; transform: translateX(-24px); }
+
 /* ---------- Page transitions ---------- */
 
 ::view-transition-old(root),

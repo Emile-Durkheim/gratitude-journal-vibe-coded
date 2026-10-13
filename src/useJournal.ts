@@ -6,6 +6,7 @@ import {
   requestPersistence,
   saveEntries,
   saveLanguage,
+  saveOnboarded,
   saveEntry,
   saveWeek,
   saveSettings,
@@ -32,6 +33,8 @@ export function useJournal() {
   // null follows the device's language
   const language = ref<Lang | null>(null)
   const lang = computed<Lang>(() => language.value ?? deviceLang())
+  // A first visit opens on the introduction; true until storage says otherwise, so it never flashes.
+  const onboarded = ref(true)
   // Days and weeks edited but not yet written, flushed after a short pause or when the page is hidden.
   const pending = new Map<string, { kind: 'day' | 'week'; date: string; entry: Entry | undefined }>()
   let timer: number | undefined
@@ -39,6 +42,7 @@ export function useJournal() {
   loadAll()
     .then((all) => {
       language.value = all.language
+      onboarded.value = all.onboarded
       entries.value = all.entries
       weeks.value = all.weeks
       settings.value = all.settings
@@ -122,9 +126,15 @@ export function useJournal() {
     report(saveSettings(file.settings))
   }
 
+  /** The introduction is done; settings chosen along the way are already saved. */
+  const finishOnboarding = () => {
+    onboarded.value = true
+    report(saveOnboarded())
+  }
+
   const retryPersist = () => {
     requestPersistence().then((p) => (persist.value = p))
   }
 
-  return { loaded, lang, language, setLanguage, entries, weeks, settings, saveError, persist, setItems, stamp, setWeekItems, updateSettings, importFile, flush, retryPersist }
+  return { loaded, lang, language, setLanguage, entries, weeks, settings, saveError, persist, setItems, stamp, setWeekItems, updateSettings, importFile, flush, retryPersist, onboarded, finishOnboarding }
 }
