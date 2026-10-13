@@ -143,5 +143,7 @@ const lastExport = computed(() =>
     </div>
 
     <div v-if="message" role="status" class="alert alert-success mb-4 text-sm">{{ message }}</div>
+
+    <p class="text-center text-sm italic"><a class="link text-rose" href="#/welcome">{{ t.showIntro }}</a></p>
   </section>
 </template>

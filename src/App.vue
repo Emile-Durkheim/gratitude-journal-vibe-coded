@@ -4,6 +4,7 @@ import { MotionConfig } from 'motion-v'
 import CalendarView from './CalendarView.vue'
 import DayView from './DayView.vue'
 import PromptLibraryView from './PromptLibraryView.vue'
+import OnboardingView from './OnboardingView.vue'
 import SettingsView from './SettingsView.vue'
 import WeekView from './WeekView.vue'
 import WreathView from './WreathView.vue'
@@ -15,7 +16,7 @@ import { useJournal } from './useJournal'
 
 const route = useHashRoute()
 const journal = useJournal()
-const { entries, weeks, settings, lang, language, loaded, saveError, persist } = journal
+const { entries, weeks, settings, lang, language, loaded, saveError, persist, onboarded } = journal
 const now = new Date()
 const month = ref({ year: now.getFullYear(), month: now.getMonth() })
 const wreathWeek = ref(weekEnd(todayKey()))
@@ -40,6 +41,12 @@ const backFromDay = (date: string) => {
   month.value = { year: d.getFullYear(), month: d.getMonth() }
   wreathWeek.value = weekEnd(date)
 }
+// Leaving the introduction lands on the wreath, or on today's page with the wreath to go back to.
+const finishOnboarding = (write: boolean) => {
+  journal.finishOnboarding()
+  if (route.value.name === 'welcome') location.replace('#/')
+  if (write) location.hash = `#/day/${todayKey()}`
+}
 const backFromWeek = (sunday: string) => {
   const thisWeek = weekEnd(todayKey())
   wreathWeek.value = sunday > thisWeek ? thisWeek : sunday
@@ -51,8 +58,14 @@ const backFromWeek = (sunday: string) => {
     <main class="app mx-auto max-w-md px-5">
       <div v-if="saveError" role="alert" class="alert alert-error mb-3 text-sm">{{ STRINGS[lang].saveError }}</div>
       <template v-if="loaded && settings">
+        <OnboardingView
+          v-if="!onboarded || route.name === 'welcome'"
+          :settings="settings"
+          @settings-change="journal.updateSettings"
+          @done="finishOnboarding"
+        />
         <DayView
-          v-if="route.name === 'day'"
+          v-else-if="route.name === 'day'"
           :key="route.date"
           :date="route.date"
           :entry="entries[route.date]"

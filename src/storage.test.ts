@@ -11,6 +11,7 @@ import {
   parseExport,
   sanitizeSettings,
   saveEntry,
+  saveOnboarded,
   saveSettings,
   saveWeek,
   toExport,
@@ -33,6 +34,13 @@ describe('makeEntry', () => {
 })
 
 describe('IndexedDB storage', () => {
+  // runs first, while the store is still empty
+  it('remembers that the introduction is done', async () => {
+    expect((await loadAll()).onboarded).toBe(false)
+    await saveOnboarded()
+    expect((await loadAll()).onboarded).toBe(true)
+  })
+
   it('saves, loads and deletes days and settings', async () => {
     await saveEntry('2026-10-11', makeEntry('2026-10-11', items('x'), 1))
     await saveEntry('2026-10-12', makeEntry('2026-10-12', items('y'), 2))
