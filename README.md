@@ -9,6 +9,7 @@ A minimal, installable gratitude journal. Each day you write in presses a flower
 - **Weekly review:** a second set of prompts for looking back on the week and ahead to the next. It opens from the wreath and from every Sunday, and is highlighted on Sundays. Sunday still has the normal daily prompts.
 - **Local only:** everything is stored in your browser's IndexedDB, and the app asks the browser for persistent storage. No accounts, no server, no tracking.
 - **Backup:** export your journal as a JSON file and import it on another device (entries merge, newer edits win).
+- **Built with Vue 3 and Vite:** single-file components, with motion-v for the springy petals and stamp.
 - **Flower press design:** cream paper, EB Garamond for the page and Caveat handwriting for your answers on ruled lines. Tailwind CSS and daisyUI with a custom "press" theme (see `src/index.css`). Fonts are bundled, so it works offline. Animations are switched off when the system asks for reduced motion.
 - **Works offline** and can be installed to your home screen.
 

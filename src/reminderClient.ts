@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { ref, type Ref } from 'vue'
 import { isIos, isStandalone } from './install'
 import { toKey } from './dates'
 import { dueToday, loadReminder, msUntilNext, PERIODIC_SYNC_TAG, remindIfDue, saveReminder, type Reminder } from './reminder'
@@ -62,59 +62,54 @@ if (typeof document !== 'undefined') {
 }
 
 export type ReminderState = {
-  reminder: Reminder | null
+  reminder: Ref<Reminder | null>
   support: ReminderSupport
-  permission: NotificationPermission | null
+  permission: Ref<NotificationPermission | null>
   /** Whether the browser agreed to wake the app in the background. */
-  background: boolean | null
+  background: Ref<boolean | null>
   setEnabled: (on: boolean) => Promise<void>
   setTime: (time: string) => void
 }
 
 export function useReminder(): ReminderState {
   const support = reminderSupport()
-  const [reminder, setReminder] = useState<Reminder | null>(null)
-  const [permission, setPermission] = useState(support === 'ok' ? Notification.permission : null)
-  const [background, setBackground] = useState<boolean | null>(null)
+  const reminder = ref<Reminder | null>(null)
+  const permission = ref<NotificationPermission | null>(support === 'ok' ? Notification.permission : null)
+  const background = ref<boolean | null>(null)
 
-  useEffect(() => {
-    loadReminder()
-      .then(async (r) => {
-        setReminder(r)
-        if (r.enabled && support === 'ok' && Notification.permission === 'granted') setBackground(await registerBackgroundCheck())
-      })
-      .catch(() => undefined)
-  }, [support])
+  loadReminder()
+    .then(async (r) => {
+      reminder.value = r
+      if (r.enabled && support === 'ok' && Notification.permission === 'granted') background.value = await registerBackgroundCheck()
+    })
+    .catch(() => undefined)
 
-  const update = useCallback(async (patch: Partial<Reminder>) => {
+  const update = async (patch: Partial<Reminder>) => {
     const next = { ...(await loadReminder()), ...patch }
     // A time that has already passed today starts tomorrow, rather than nudging right away.
     const now = new Date()
     if (dueToday(next.time, now) <= now) next.lastShown = toKey(now)
-    setReminder(next)
+    reminder.value = next
     await saveReminder(next)
     await scheduleReminder()
-  }, [])
+  }
 
-  const setEnabled = useCallback(
-    async (on: boolean) => {
-      if (!on) {
-        await update({ enabled: false })
-        await unregisterBackgroundCheck()
-        return
-      }
-      if (support !== 'ok') return
-      // The permission prompt only ever appears here, when someone turns reminders on.
-      const result = await Notification.requestPermission()
-      setPermission(result)
-      if (result !== 'granted') return
-      await update({ enabled: true })
-      setBackground(await registerBackgroundCheck())
-    },
-    [support, update],
-  )
+  const setEnabled = async (on: boolean) => {
+    if (!on) {
+      await update({ enabled: false })
+      await unregisterBackgroundCheck()
+      return
+    }
+    if (support !== 'ok') return
+    // The permission prompt only ever appears here, when someone turns reminders on.
+    const result = await Notification.requestPermission()
+    permission.value = result
+    if (result !== 'granted') return
+    await update({ enabled: true })
+    background.value = await registerBackgroundCheck()
+  }
 
-  const setTime = useCallback((time: string) => void update({ time }), [update])
+  const setTime = (time: string) => void update({ time })
 
   return { reminder, support, permission, background, setEnabled, setTime }
 }

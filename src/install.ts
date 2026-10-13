@@ -1,22 +1,18 @@
-import { useEffect, useState } from 'react'
+import { computed, shallowRef, type ComputedRef } from 'vue'
 
 /** Chrome's install event; not in the DOM typings. */
 type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
 
-let deferred: InstallPromptEvent | null = null
-const listeners = new Set<() => void>()
-const notify = () => listeners.forEach((l) => l())
+const deferred = shallowRef<InstallPromptEvent | null>(null)
 
-// Registered at import time: the event can fire before React mounts.
+// Registered at import time: the event can fire before the app mounts.
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
-    deferred = e as InstallPromptEvent
-    notify()
+    deferred.value = e as InstallPromptEvent
   })
   window.addEventListener('appinstalled', () => {
-    deferred = null
-    notify()
+    deferred.value = null
   })
 }
 
@@ -38,27 +34,20 @@ export type InstallState =
   | { kind: 'manual' }
 
 /** How this browser can install the app: a one-tap prompt (Android/Chrome), Share sheet steps (iOS), or the browser menu. */
-export function useInstall(): InstallState {
-  const [, force] = useState(0)
-  useEffect(() => {
-    const l = () => force((n) => n + 1)
-    listeners.add(l)
-    return () => {
-      listeners.delete(l)
+export function useInstall(): ComputedRef<InstallState> {
+  return computed(() => {
+    const ev = deferred.value
+    if (isStandalone()) return { kind: 'installed' }
+    if (ev) {
+      return {
+        kind: 'prompt',
+        install: async () => {
+          await ev.prompt()
+          await ev.userChoice
+          deferred.value = null
+        },
+      }
     }
-  }, [])
-  if (isStandalone()) return { kind: 'installed' }
-  if (deferred) {
-    const ev = deferred
-    return {
-      kind: 'prompt',
-      install: async () => {
-        await ev.prompt()
-        await ev.userChoice
-        deferred = null
-        notify()
-      },
-    }
-  }
-  return isIos() ? { kind: 'ios' } : { kind: 'manual' }
+    return isIos() ? { kind: 'ios' } : { kind: 'manual' }
+  })
 }
