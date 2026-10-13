@@ -65,10 +65,13 @@ export function useJournal() {
   const onVisibility = () => document.visibilityState === 'hidden' && flush()
   onMounted(() => {
     window.addEventListener('pagehide', flush)
+    // an installed app is usually granted persistent storage, so ask again straight away
+    window.addEventListener('appinstalled', retryPersist)
     document.addEventListener('visibilitychange', onVisibility)
   })
   onUnmounted(() => {
     window.removeEventListener('pagehide', flush)
+    window.removeEventListener('appinstalled', retryPersist)
     document.removeEventListener('visibilitychange', onVisibility)
     flush()
   })

@@ -10,13 +10,13 @@ import { LANGS, STRINGS, deviceLang, type Lang } from './i18n'
 import { useInstall } from './install'
 import { defaultPrompts, promptLibrary, weeklyPromptLibrary } from './prompts'
 import { useLang } from './useLang'
-import type { Settings } from './storage'
+import type { PersistState, Settings } from './storage'
 
 /**
  * The first-run introduction: a page on the practice, then the settings one at a time. Every
  * choice is saved as it is made, so leaving halfway keeps what was picked.
  */
-defineProps<{ settings: Settings }>()
+defineProps<{ settings: Settings; persist: PersistState | null }>()
 const emit = defineEmits<{
   settingsChange: [patch: Partial<Settings>]
   /** Finished or skipped; `write` opens today's page rather than the wreath. */
@@ -56,8 +56,7 @@ const sample = (l: Lang) => STRINGS[l].quoted(defaultPrompts(l)[0])
         <div class="welcome-rule mx-auto mt-3" aria-hidden="true"><span>✿</span></div>
         <p class="mt-4 max-w-xs leading-relaxed">{{ t.obDoneBody }}</p>
         <div class="mt-8 grid w-full gap-3">
-          <button type="button" class="btn btn-primary btn-lg w-full" @click="emit('done', true)">{{ t.obStart }}</button>
-          <button type="button" class="btn btn-outline btn-lg w-full" @click="emit('done', false)">{{ t.obToWreath }}</button>
+          <button type="button" class="btn btn-primary btn-lg w-full" @click="emit('done', false)">{{ t.obToWreath }}</button>
         </div>
       </div>
 
@@ -115,8 +114,8 @@ const sample = (l: Lang) => STRINGS[l].quoted(defaultPrompts(l)[0])
 
           <template v-else-if="name === 'home'">
             <h1 class="ob-title">{{ t.obHomeTitle }}</h1>
+            <InstallCard :persist="persist" class="mt-4" />
             <p class="ob-body mb-5">{{ t.obHomeBody }}</p>
-            <InstallCard />
             <p v-if="install.kind === 'installed'" class="italic opacity-70">{{ t.obInstalled }}</p>
           </template>
         </div>
