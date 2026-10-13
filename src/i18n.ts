@@ -203,13 +203,13 @@ const en = {
 export type Strings = typeof en
 
 const de: Strings = {
-  appTitle: 'Die Blumenpresse',
+  appTitle: 'Die Blütenpresse',
   docTitle: 'Dankbarkeitstagebuch',
   quoted: (text) => `„${text}“`,
   calendarView: 'Kalender',
-  wreathView: 'Kranz',
+  wreathView: 'Blüten',
   settings: 'Einstellungen',
-  backToWreath: 'Zurück zum Kranz',
+  backToWreath: 'Zurück zu Blüten',
 
   thisWeek: 'Diese Woche',
   weekOf: 'Woche vom',
@@ -223,17 +223,17 @@ const de: Strings = {
   earlier: '‹ Früher',
   later: 'Später ›',
   openToday: 'Heutige Seite öffnen',
-  pressToday: 'Die heutige Blume pressen',
-  sundayReview: 'Es ist Sonntag: Blick auf deine Woche',
+  pressToday: 'Heutige Blüte pressen',
+  sundayReview: 'Es ist Sonntag: Schaue auf deine Woche zurück',
   readReview: 'Wochenrückblick lesen',
-  reviewThisWeek: 'Auf diese Woche zurückblicken',
+  reviewThisWeek: 'Wochenrückblick anfertigen',
   installApp: 'Als App installieren',
   addToHome: 'Das Tagebuch zum Home-Bildschirm hinzufügen',
 
   previousMonth: 'Voriger Monat',
   nextMonth: 'Nächster Monat',
-  nothingPressed: 'Diesen Monat noch nichts gepresst',
-  flowersPressed: (n) => `${plural(n, 'Blume', 'Blumen')} gepresst`,
+  nothingPressed: 'Diesen Monat noch keine Blüte gepresset',
+  flowersPressed: (n) => `${plural(n, 'Blüte', 'Blüten')} gepresst`,
   today: 'Heute',
   hasEntry: 'mit Eintrag',
   reviewWrittenShort: 'Wochenrückblick geschrieben',
@@ -244,7 +244,7 @@ const de: Strings = {
   changePrompts: 'Fragen ändern',
   weeklyReview: 'Wochenrückblick',
   reviewCardWritten: 'Geschrieben. Tippen zum Lesen oder Bearbeiten.',
-  reviewCardInvite: 'Der Sonntag ist ein guter Tag, um auf die Woche zurückzublicken.',
+  reviewCardInvite: 'Sonntag ist ein guter Tag, um auf die Woche zurückzublicken.',
   previousDay: '‹ Voriger Tag',
   nextDay: 'Nächster Tag ›',
   writeHere: 'hier schreiben…',
@@ -252,8 +252,8 @@ const de: Strings = {
   stampPressed: 'Gepresst',
   stampWrite: 'Erst schreiben',
   stampFull: 'Diesen Tag pressen',
-  stampPartial: 'So pressen, wie er ist',
-  stampDoneLabel: 'Dieser Tag ist gepresst. Noch einmal drücken, um ihn wieder zu öffnen',
+  stampPartial: 'So pressen, wie die Blüte ist',
+  stampDoneLabel: 'Dieser Tag ist gepresst. Wenn du nochmal drückst, kannst du ihn wieder ändern.',
   stampLabel: (filled, total) => `Diesen Tag pressen (${filled} von ${total} beantwortet)`,
 
   notStarted: 'Diese Woche hat noch nicht begonnen.',
@@ -300,7 +300,7 @@ const de: Strings = {
   importFailed: 'Import fehlgeschlagen.',
   notABackup: 'Das ist keine Sicherungsdatei des Dankbarkeitstagebuchs.',
 
-  installTitle: 'Auf den Home-Bildschirm legen',
+  installTitle: 'Aks App installieren',
   installBody: 'Installiert öffnet sich das Tagebuch wie jede andere App, funktioniert offline, und der Browser löscht seinen Speicher seltener.',
   riskTitle: 'Dein Tagebuch ist noch nicht sicher',
   riskBody:
@@ -312,7 +312,7 @@ const de: Strings = {
   iosStep3: 'Wähle „Zum Home-Bildschirm“ und dann „Hinzufügen“.',
   manualInstall: 'Öffne das Browsermenü (⋮) und wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.',
 
-  reminderTitle: 'Eine sanfte Erinnerung',
+  reminderTitle: 'Eine leise Erinnerung',
   reminderToggle: 'Tägliche Erinnerung',
   reminderBody: 'Eine leise Mitteilung am Tag, nur an Tagen, an denen du noch nichts geschrieben hast.',
   remindMeAt: 'Erinnere mich um',
