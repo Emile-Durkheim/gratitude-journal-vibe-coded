@@ -20,8 +20,8 @@ export default defineConfig({
       injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'Gratitude Journal',
-        short_name: 'Gratitude',
+        name: 'The Flower Press',
+        short_name: 'Flower Press',
         description: 'Three small prompts a day. Stored only on your device.',
         id: base,
         start_url: base,

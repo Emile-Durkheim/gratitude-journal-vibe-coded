@@ -169,7 +169,7 @@ export function toExport(entries: Entries, settings: Settings, weeks: Entries = 
 export function parseExport(text: string, lang: Lang = 'en'): ExportFile {
   const data = JSON.parse(text)
   if (!data || data.version !== 2 || typeof data.entries !== 'object') {
-    throw new Error('Not a Gratitude Journal backup file.')
+    throw new Error('Not a Flower Press backup file.')
   }
   return {
     version: 2,
