@@ -27,7 +27,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 
 const en = {
   appTitle: 'The Flower Press',
-  docTitle: 'Gratitude Journal',
+  docTitle: 'The Flower Press',
   quoted: (text: string) => `“${text}”`,
   calendarView: 'Calendar view',
   wreathView: 'Wreath view',
@@ -127,7 +127,7 @@ const en = {
   imported: (days: number, weeks: number) =>
     `Imported ${plural(days, 'day', 'days')} and ${plural(weeks, 'weekly review', 'weekly reviews')}.`,
   importFailed: 'Import failed.',
-  notABackup: 'Not a Gratitude Journal backup file.',
+  notABackup: 'Not a The Flower Press backup file.',
 
   // install
   installTitle: 'Put it on your home screen',
@@ -204,7 +204,7 @@ export type Strings = typeof en
 
 const de: Strings = {
   appTitle: 'Die Blütenpresse',
-  docTitle: 'Dankbarkeitstagebuch',
+  docTitle: 'The Flower Press',
   quoted: (text) => `„${text}“`,
   calendarView: 'Kalender',
   wreathView: 'Blüten',
@@ -298,7 +298,7 @@ const de: Strings = {
   imported: (days, weeks) =>
     `${plural(days, 'Tag', 'Tage')} und ${plural(weeks, 'Wochenrückblick', 'Wochenrückblicke')} importiert.`,
   importFailed: 'Import fehlgeschlagen.',
-  notABackup: 'Das ist keine Sicherungsdatei des Dankbarkeitstagebuchs.',
+  notABackup: 'Das ist keine Sicherungsdatei der Flower Press.',
 
   installTitle: 'Aks App installieren',
   installBody: 'Installiert öffnet sich das Tagebuch wie jede andere App, funktioniert offline, und der Browser löscht seinen Speicher seltener.',
