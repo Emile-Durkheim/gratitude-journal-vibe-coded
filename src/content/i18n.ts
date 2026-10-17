@@ -127,7 +127,7 @@ const en = {
   imported: (days: number, weeks: number) =>
     `Imported ${plural(days, 'day', 'days')} and ${plural(weeks, 'weekly review', 'weekly reviews')}.`,
   importFailed: 'Import failed.',
-  notABackup: 'Not a The Flower Press backup file.',
+  notABackup: 'Not a Flower Press backup file.',
 
   // install
   installTitle: 'Put it on your home screen',
@@ -157,7 +157,7 @@ const en = {
   notificationBody: 'A few lines about today, whenever you’re ready.',
 
   // onboarding
-  welcomeKicker: 'Welcome to the Flower Press',
+  welcomeKicker: 'Welcome to The Flower Press',
   welcomeTitle: 'A few lines of thanks',
   welcomeLead:
     'Gratitude journaling is a small habit: now and then, write down something good and stay with it for a moment. Psychologists have studied it for twenty years. The effect is real but gentle, a little more contentment and optimism rather than a transformation.',
