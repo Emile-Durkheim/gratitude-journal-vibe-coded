@@ -23,9 +23,6 @@ const props = defineProps<{
 }>()
 const t = useT()
 
-/** Each small flower sways at its own pace, so the row never moves in lockstep. */
-const swayStyle = (i: number) => ({ animationDuration: `${4.2 + ((i * 7) % 5) * 0.45}s`, animationDelay: `${-i * 0.9}s` })
-
 const days = computed(() => {
   const today = todayKey()
   return weekDays(weekEnd(props.date)).map((d) => {
@@ -48,7 +45,7 @@ const days = computed(() => {
   <nav class="week-strip flex items-end" :aria-label="t.thisWeekNav">
     <component
       :is="day.future ? 'span' : 'a'"
-      v-for="(day, i) in days"
+      v-for="day in days"
       :key="day.d"
       :href="day.future ? undefined : `#/day/${day.d}`"
       :class="['strip-day flex flex-col items-center gap-0.5 rounded py-1', { selected: day.selected, 'opacity-60': day.future }]"
@@ -61,16 +58,16 @@ const days = computed(() => {
         <span v-if="day.selected" :class="['live-flower sway', { complete }]">
           <Flower :size="58" :petals="petals" :filled="filled" :day="day.d" />
         </span>
-        <span v-else-if="day.entry" class="sway small" :style="swayStyle(i)">
+        <span v-else-if="day.entry" class="sway small">
           <Flower :size="30" :petals="day.petals!" :filled="day.filled!" :day="day.d" />
         </span>
         <svg v-else-if="day.future" width="30" height="30" viewBox="-15 -15 30 30" aria-hidden="true">
           <circle r="3.5" fill="#e6dcc6" stroke="#cbbfae" />
         </svg>
-        <span v-else-if="day.isToday" class="sway small" :style="swayStyle(i)">
+        <span v-else-if="day.isToday" class="sway small">
           <Flower :size="30" :petals="promptCount" :filled="0" :day="day.d" />
         </span>
-        <span v-else class="sway small" :style="swayStyle(i)">
+        <span v-else class="sway small">
           <svg width="30" height="30" viewBox="-15 -15 30 30" aria-hidden="true">
             <g transform="rotate(-20) scale(.9)">
               <LeafG />

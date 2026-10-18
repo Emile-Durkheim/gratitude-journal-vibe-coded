@@ -41,7 +41,7 @@ const petals = computed(() => entry.value && petalsFor(entry.value.items, props.
     :aria-current="!future && isToday ? 'date' : undefined"
   >
     <span :class="['italic leading-none', isToday ? 'font-semibold text-rose' : 'opacity-70']">{{ day }}</span>
-    <span v-if="petals" class="sway small" :style="{ animationDuration: `${4 + (day % 5) * 0.4}s`, animationDelay: `${-day * 0.7}s` }">
+    <span v-if="petals" class="sway small">
       <Flower :size="30" :petals="petals.petals" :filled="petals.filled" :day="dateKey" :rotate="day * 23" />
     </span>
     <span v-if="weekDone" class="week-mark absolute bottom-0.5 right-1 text-[0.65rem] text-rose" aria-hidden="true">✿</span>

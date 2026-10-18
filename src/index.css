@@ -145,26 +145,18 @@ body {
 .today-ring > svg { animation: ring-turn 40s linear infinite; will-change: transform; }
 @keyframes ring-turn { to { transform: rotate(360deg); } }
 
-/* The open day's flower sways a little on the page, as if just picked. */
+/* The open day's flower sways a little on the page, as if just picked. The motion itself comes from the shared
+   wind in lib/wind.ts, which sets `rotate` on every .sway / .sway-svg element. */
 .live-flower { display: inline-block; line-height: 0; }
-.sway { transform-origin: 50% 85%; animation: sway 5s ease-in-out infinite; will-change: transform; }
-@keyframes sway {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
-}
+.sway { transform-origin: 50% 85%; will-change: rotate; }
 .sway.small { display: inline-block; line-height: 0; transform-origin: 50% 70%; }
-@keyframes sway-small {
-  0%, 100% { transform: rotate(-5deg); }
-  50% { transform: rotate(5deg); }
-}
-.sway.small { animation-name: sway-small; }
-.sway-svg { transform-box: view-box; transform-origin: 0 26px; animation: sway-small 5s ease-in-out infinite; }
-.live-flower.complete { filter: drop-shadow(0 0 6px oklch(85% 0.12 85 / 0.9)); animation: pressed 0.9s cubic-bezier(0.34, 1.6, 0.5, 1), sway 5s ease-in-out 0.9s infinite; }
+.sway-svg { transform-box: view-box; transform-origin: 0 26px; }
+.live-flower.complete { filter: drop-shadow(0 0 6px oklch(85% 0.12 85 / 0.9)); animation: pressed 0.9s cubic-bezier(0.34, 1.6, 0.5, 1); }
 .live-flower.complete .flower-heart { fill: #f0c75a; }
 @keyframes pressed {
   0% { transform: scale(1) rotate(0); }
   40% { transform: scale(1.3) rotate(20deg); }
-  100% { transform: scale(1) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); }
 }
 
 .pressed-line { animation: ink-in 1.2s ease-out both; }
