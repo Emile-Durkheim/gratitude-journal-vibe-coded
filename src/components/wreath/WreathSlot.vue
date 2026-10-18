@@ -28,8 +28,6 @@ const label = computed(
 const petals = computed(() => entry.value && petalsFor(entry.value.items, props.promptCount, !!entry.value.stampedAt))
 // Flowers open one after another around the wreath, Monday first.
 const delay = computed(() => ({ '--d': `${props.index * 110}ms` }))
-// each flower sways on an imagined stem, at its own pace
-const sway = computed(() => ({ animationDuration: `${4.4 + ((props.index * 3) % 4) * 0.5}s`, animationDelay: `${-props.index * 1.1}s` }))
 </script>
 
 <template>
@@ -39,7 +37,7 @@ const sway = computed(() => ({ animationDuration: `${4.4 + ((props.index * 3) % 
     </g>
     <a v-else :href="`#/day/${dateKey}`" :aria-label="label" :class="['slot', entry ? 'pressed' : 'empty']">
       <circle class="hit" r="31" fill="transparent" />
-      <g class="sway-svg" :style="sway">
+      <g class="sway-svg">
         <g v-if="petals" transform="scale(1.6)">
           <FlowerG :petals="petals.petals" :filled="petals.filled" :day="dateKey" :delay="index * 0.11" />
         </g>

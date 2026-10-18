@@ -7,7 +7,9 @@ import '@fontsource/caveat/latin-600.css'
 import App from './App.vue'
 import './index.css'
 import { scheduleReminder } from './lib/reminderClient'
+import { startWind } from './lib/wind'
 
 createApp(App).mount('#root')
 
 scheduleReminder()
+startWind()
