@@ -67,8 +67,12 @@ export function petalPath(n: number, shape: PetalShape, scale: number): string {
   }
 }
 
-/** Petals and how many are answered, for a stored entry or for an empty day with the current prompts. */
-export function petalsFor(items: { answer: string }[] | undefined, fallbackCount: number) {
+/**
+ * Petals and how many are answered, for a stored entry or for an empty day with the current prompts.
+ * A stamped day grows only the petals that were answered, so a skipped prompt leaves no empty petal.
+ */
+export function petalsFor(items: { answer: string }[] | undefined, fallbackCount: number, stamped = false) {
   if (!items) return { petals: fallbackCount, filled: 0 }
-  return { petals: items.length, filled: items.filter((i) => i.answer.trim()).length }
+  const filled = items.filter((i) => i.answer.trim()).length
+  return stamped && filled > 0 ? { petals: filled, filled } : { petals: items.length, filled }
 }

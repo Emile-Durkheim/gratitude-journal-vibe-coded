@@ -30,7 +30,6 @@ const atRisk = computed(() => install.value.kind !== 'installed' && props.persis
 const today = todayKey()
 const thisWeek = weekEnd(today)
 const days = computed(() => weekDays(props.sunday))
-const pressed = computed(() => days.value.filter((d) => props.entries[d]).length)
 const reviewed = computed(() => !!props.weeks[props.sunday])
 const shift = (delta: number) => {
   const d = fromKey(props.sunday)
@@ -54,6 +53,8 @@ const leaves = Array.from({ length: 7 }, (_, i) => {
   const a = ((i + 0.5) / 7) * 360 - 90
   return `translate(${C + R * Math.cos(rad(a))} ${C + R * Math.sin(rad(a))}) rotate(${a + 90}) scale(.7)`
 })
+// A written review hangs as a ribbon from the vine where the week ends, between Sunday and Monday.
+const ribbon = { x: C + R * Math.cos(rad(-90 - 180 / 7)), y: C + R * Math.sin(rad(-90 - 180 / 7)) }
 const slots = computed(() =>
   days.value.map((d, i) => {
     const a = (i / 7) * 360 - 90
@@ -97,7 +98,7 @@ const slots = computed(() =>
         </g>
         <path
           v-if="reviewed"
-          :d="`M${C + 52} ${C - 70} v30 l7 -6 l7 6 v-30z`"
+          :d="`M${ribbon.x - 7} ${ribbon.y} v30 l7 -6 l7 6 v-30z`"
           fill="#b5576c"
           fill-opacity=".75"
           :aria-label="t.reviewWritten"
@@ -107,7 +108,6 @@ const slots = computed(() =>
       <div class="pointer-events-none absolute inset-0 grid place-content-center text-center">
         <span class="text-[0.7rem] uppercase tracking-[0.25em] opacity-60">{{ isThisWeek ? t.thisWeek : t.weekOf }}</span>
         <span class="week-range text-xl italic leading-tight">{{ formatWeekRange(sunday) }}</span>
-        <span class="pressed-count mt-1 text-sm opacity-70">{{ t.pressedOfSeven(pressed) }}{{ reviewed ? ` · ${t.reviewed}` : '' }}</span>
       </div>
     </div>
 

@@ -110,7 +110,7 @@ const next = neighbour(1)
         :date="date"
         :entries="entries"
         :prompt-count="currentPrompts.length"
-        :petals="items.length"
+        :petals="!future && stamped ? filled : items.length"
         :filled="future ? 0 : filled"
         :complete="!future && stamped"
       />
