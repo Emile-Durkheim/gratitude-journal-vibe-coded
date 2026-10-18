@@ -38,7 +38,7 @@ const days = computed(() => {
       isToday: d === today,
       weekday: fromKey(d).toLocaleDateString(dateLocale(), { weekday: 'narrow' }),
       long: formatLong(d),
-      ...(entry && petalsFor(entry.items, props.promptCount)),
+      ...(entry && petalsFor(entry.items, props.promptCount, !!entry.stampedAt)),
     }
   })
 })

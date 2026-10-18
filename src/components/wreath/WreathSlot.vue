@@ -25,7 +25,7 @@ const isToday = computed(() => props.dateKey === props.today)
 const label = computed(
   () => `${formatLong(props.dateKey)}, ${entry.value ? t.value.slotPressed : future.value ? t.value.slotNotYet : t.value.slotQuiet}`,
 )
-const petals = computed(() => entry.value && petalsFor(entry.value.items, props.promptCount))
+const petals = computed(() => entry.value && petalsFor(entry.value.items, props.promptCount, !!entry.value.stampedAt))
 // Flowers open one after another around the wreath, Monday first.
 const delay = computed(() => ({ '--d': `${props.index * 110}ms` }))
 // each flower sways on an imagined stem, at its own pace

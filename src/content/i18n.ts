@@ -37,8 +37,6 @@ const en = {
   // wreath
   thisWeek: 'This week',
   weekOf: 'Week of',
-  pressedOfSeven: (n: number) => `${n} of 7 pressed`,
-  reviewed: 'reviewed',
   weekLabel: (range: string) => `Week of ${range}`,
   slotPressed: 'pressed',
   slotNotYet: 'not yet',
@@ -213,8 +211,6 @@ const de: Strings = {
 
   thisWeek: 'Diese Woche',
   weekOf: 'Woche vom',
-  pressedOfSeven: (n) => `${n} von 7 gepresst`,
-  reviewed: 'Rückblick geschrieben',
   weekLabel: (range) => `Woche ${range}`,
   slotPressed: 'gepresst',
   slotNotYet: 'noch nicht',

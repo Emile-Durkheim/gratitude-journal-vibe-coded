@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { flowerColor, flowerKind } from './flower'
+import { flowerColor, flowerKind, petalsFor } from './flower'
 import { toKey } from './dates'
 
 describe('flowerKind', () => {
@@ -15,5 +15,15 @@ describe('flowerKind', () => {
     expect(new Set(kinds.map((k) => k.centre)).size).toBe(3)
     expect(new Set(days.map(flowerColor)).size).toBeGreaterThan(4)
     expect(kinds.some((k) => k.double) && kinds.some((k) => !k.double)).toBe(true)
+  })
+})
+
+describe('petalsFor', () => {
+  const items = [{ answer: 'a' }, { answer: '' }, { answer: 'c' }]
+  it('keeps an empty petal for each unanswered prompt while writing', () => {
+    expect(petalsFor(items, 3)).toEqual({ petals: 3, filled: 2 })
+  })
+  it('grows only the answered petals once stamped', () => {
+    expect(petalsFor(items, 3, true)).toEqual({ petals: 2, filled: 2 })
   })
 })

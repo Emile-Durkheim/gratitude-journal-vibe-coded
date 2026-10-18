@@ -28,7 +28,7 @@ const classes = computed(() => [
 const label = computed(
   () => `${formatLong(props.dateKey)}${entry.value ? `, ${t.value.hasEntry}` : ''}${props.weekDone ? `, ${t.value.reviewWrittenShort}` : ''}`,
 )
-const petals = computed(() => entry.value && petalsFor(entry.value.items, props.promptCount))
+const petals = computed(() => entry.value && petalsFor(entry.value.items, props.promptCount, !!entry.value.stampedAt))
 </script>
 
 <template>
