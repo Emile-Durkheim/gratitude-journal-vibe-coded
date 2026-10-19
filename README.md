@@ -1,4 +1,4 @@
-# Gratitude Journal
+# The Flower Press
 
 A minimal, installable gratitude journal. Each day you write in presses a flower into this week's wreath, and nothing leaves your device.
 

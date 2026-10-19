@@ -27,7 +27,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 
 const en = {
   appTitle: 'The Flower Press',
-  docTitle: 'Gratitude Journal',
+  docTitle: 'The Flower Press',
   quoted: (text: string) => `“${text}”`,
   calendarView: 'Calendar view',
   wreathView: 'Wreath view',
@@ -125,7 +125,7 @@ const en = {
   imported: (days: number, weeks: number) =>
     `Imported ${plural(days, 'day', 'days')} and ${plural(weeks, 'weekly review', 'weekly reviews')}.`,
   importFailed: 'Import failed.',
-  notABackup: 'Not a Gratitude Journal backup file.',
+  notABackup: 'Not a Flower Press backup file.',
 
   // install
   installTitle: 'Put it on your home screen',
@@ -155,7 +155,7 @@ const en = {
   notificationBody: 'A few lines about today, whenever you’re ready.',
 
   // onboarding
-  welcomeKicker: 'Welcome to the Flower Press',
+  welcomeKicker: 'Welcome to The Flower Press',
   welcomeTitle: 'A few lines of thanks',
   welcomeLead:
     'Gratitude journaling is a small habit: now and then, write down something good and stay with it for a moment. Psychologists have studied it for twenty years. The effect is real but gentle, a little more contentment and optimism rather than a transformation.',
@@ -202,7 +202,7 @@ export type Strings = typeof en
 
 const de: Strings = {
   appTitle: 'Die Blütenpresse',
-  docTitle: 'Dankbarkeitstagebuch',
+  docTitle: 'The Flower Press',
   quoted: (text) => `„${text}“`,
   calendarView: 'Kalender',
   wreathView: 'Blüten',
@@ -294,7 +294,7 @@ const de: Strings = {
   imported: (days, weeks) =>
     `${plural(days, 'Tag', 'Tage')} und ${plural(weeks, 'Wochenrückblick', 'Wochenrückblicke')} importiert.`,
   importFailed: 'Import fehlgeschlagen.',
-  notABackup: 'Das ist keine Sicherungsdatei des Dankbarkeitstagebuchs.',
+  notABackup: 'Das ist keine Sicherungsdatei der Flower Press.',
 
   installTitle: 'Aks App installieren',
   installBody: 'Installiert öffnet sich das Tagebuch wie jede andere App, funktioniert offline, und der Browser löscht seinen Speicher seltener.',
